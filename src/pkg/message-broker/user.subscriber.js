@@ -23,8 +23,8 @@ const listenUserActivatedQueue = async () => {
                 if (!existingDetail) {
                     await DetailUsers.create({
                         uuid_user: uuid_user,
-                        username: username || '',
-                        email: email || '',
+                        username: username,
+                        email: email,
                         firstName: '',
                         lastName: '',
                         phone: '',
