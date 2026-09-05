@@ -1,13 +1,14 @@
 const cors = require("cors");
-const express = require("express")
-const logger = require("morgan")
-const dotenv = require("dotenv")
-const helmet = require("helmet")
-const createError = require("http-errors")
-const fs = require("fs")
-const path = require("path")
-const database = require('./config/database.config')
-const userRouter = require('./routes/user.route')
+const express = require("express");
+const logger = require("morgan");
+const dotenv = require("dotenv");
+const helmet = require("helmet");
+const createError = require("http-errors");
+const fs = require("fs");
+const path = require("path");
+const database = require('./config/database.config');
+const userRouter = require('./routes/user.route');
+const messageBroker = require('./config/message-broker.config');
 
 dotenv.config();
 
@@ -40,6 +41,7 @@ app.listen(process.env.APP_PORT, async () => {
     console.log(`[SERVICE-USER] Server berjalan di port ${process.env.APP_PORT}`);
     try {
         await database.authenticate();
+        await messageBroker.connectRabbitMQ();
     } catch (error) {
         console.error("❌ Unable to start server:");
         console.error(error.message);

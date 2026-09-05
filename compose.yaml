@@ -53,4 +53,4 @@ secrets:
 networks:
   default:
   global-network-geosandbox:
-    name: global-network-geosandbox
+    external: true
