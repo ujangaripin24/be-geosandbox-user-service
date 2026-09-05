@@ -28,6 +28,12 @@ app.get('/', (req, res) => {
     });
 });
 
+app.use('/api/v1', userRouter);
+
+app.use((req, res, next) => {
+    res.status(404).json(createError(404, "Not Found Page you looking for"))
+})
+
 app.listen(process.env.APP_PORT, async () => {
     console.log(`[SERVICE-USER] Server berjalan di port ${process.env.APP_PORT}`);
     try {
