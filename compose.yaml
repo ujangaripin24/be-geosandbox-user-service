@@ -32,9 +32,9 @@ services:
       - POSTGRES_DB=db_user_geosandbox
       - POSTGRES_PASSWORD_FILE=/run/secrets/db-password
     ports:
-      - "5434:5434"
+      - "5434:5432"
     expose:
-      - "5434"
+      - "5432"
     healthcheck:
       test: [ "CMD-SHELL", "pg_isready -U postgres -d db_user_geosandbox" ]
       interval: 5s

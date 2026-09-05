@@ -6,6 +6,8 @@ const helmet = require("helmet")
 const createError = require("http-errors")
 const fs = require("fs")
 const path = require("path")
+const database = require('./config/database.config')
+const userRouter = require('./routes/user.route')
 
 dotenv.config();
 
@@ -37,7 +39,7 @@ app.use((req, res, next) => {
 app.listen(process.env.APP_PORT, async () => {
     console.log(`[SERVICE-USER] Server berjalan di port ${process.env.APP_PORT}`);
     try {
-        console.log("Connected!")
+        await database.authenticate();
     } catch (error) {
         console.error("❌ Unable to start server:");
         console.error(error.message);
