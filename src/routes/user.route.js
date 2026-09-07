@@ -3,7 +3,7 @@ const { GetAllUsersController } = require("../controllers/user.controller");
 const {
   authenticateTokenGuard,
   authenticateTokenRole,
-} = require("../middlewares/auth.middleware");
+} = require("../middlewares/guard.middleware");
 
 const router = express.Router();
 
