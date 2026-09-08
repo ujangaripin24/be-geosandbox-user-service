@@ -4,6 +4,9 @@ const {
   GetUserByUUIDService,
 } = require("../services/user.service");
 const { formatError } = require("../pkg/error-formatter.pkg");
+const {
+  deliverMessageData,
+} = require("../pkg/message-broker/message-broker.pkg");
 
 const GetAllUsersController = async (req, res, next) => {
   const { page, size, search } = req.query;
@@ -35,6 +38,11 @@ const UserUpdateController = async (req, res) => {
     let { uuid } = req.params;
     let body = req.body;
     await UserUpdateService(uuid, body);
+    await deliverMessageData("user_update", {
+      uuid: uuid,
+      username: body ? body.username : "",
+      email: body ? body.email : "",
+    });
     res.status({
       status: 200,
       data: "updated success",
