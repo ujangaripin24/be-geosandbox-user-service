@@ -1,5 +1,9 @@
 const express = require("express");
-const { GetAllUsersController } = require("../controllers/user.controller");
+const {
+  GetAllUsersController,
+  GetUserDetailController,
+  UserUpdateController,
+} = require("../controllers/user.controller");
 const {
   authenticateTokenGuard,
   authenticateTokenRole,
@@ -14,9 +18,6 @@ router.get("/users/health", (req, res) => {
     date: new Date().toISOString().replace("T", " ").substring(0, 19),
   });
 });
-
-router.get("/users/get-all", authenticateTokenGuard, GetAllUsersController);
-
 router.get(
   "/user/profile/admin",
   authenticateTokenGuard,
@@ -27,7 +28,6 @@ router.get(
     });
   },
 );
-
 router.get(
   "/user/profile/user",
   authenticateTokenGuard,
@@ -38,5 +38,8 @@ router.get(
     });
   },
 );
+router.get("/users/get-all", authenticateTokenGuard, GetAllUsersController);
+router.get("/users/detail/:uuid", GetUserDetailController);
+router.put("/users/update/:uuid", authenticateTokenGuard, UserUpdateController);
 
 module.exports = router;

@@ -1,4 +1,8 @@
-const { GetAllUsersService } = require("../services/user.service");
+const {
+  GetAllUsersService,
+  UserUpdateService,
+  GetUserByUUIDService,
+} = require("../services/user.service");
 const { formatError } = require("../pkg/error-formatter.pkg");
 
 const GetAllUsersController = async (req, res, next) => {
@@ -9,12 +13,39 @@ const GetAllUsersController = async (req, res, next) => {
     if (!getAllUsersService.data || getAllUsersService.data.length === 0) {
       return res.status(500).json(formatError("tidak ada data", "data"));
     }
-    return res.status(200).json({ message: "Get All Users", data: getAllUsersService });
+    return res
+      .status(200)
+      .json({ message: "Get All Users", data: getAllUsersService });
   } catch (error) {
     return res.status(500).json(formatError(error.message, "server"));
   }
-}
+};
+
+const GetUserDetailController = async (req, res) => {
+  try {
+    let { uuid } = req.params;
+    let result = await GetUserByUUIDService(uuid);
+    return res.status(200).json({ message: "Get All Users", data: result });
+  } catch (error) {
+    return res.status(500).json(formatError(error.message, "server"));
+  }
+};
+const UserUpdateController = async (req, res) => {
+  try {
+    let { uuid } = req.params;
+    let body = req.body;
+    await UserUpdateService(uuid, body);
+    res.status({
+      status: 200,
+      data: "updated success",
+    });
+  } catch (error) {
+    return res.status(500).json(formatError(error.message, "server"));
+  }
+};
 
 module.exports = {
-  GetAllUsersController
-}
+  GetAllUsersController,
+  GetUserDetailController,
+  UserUpdateController,
+};
