@@ -16,18 +16,18 @@ const listenUserActivatedQueue = async () => {
           payload,
         );
 
-        const { uuid_user, username, email } = payload;
-        if (!uuid_user) {
-          console.warn("[user-service] Missing uuid_user in message payload");
+        const { uuid, username, email } = payload;
+        if (!uuid) {
+          console.warn("[user-service] Missing uuid in message payload");
           return;
         }
 
         const existingDetail = await DetailUsers.findOne({
-          where: { uuid_user },
+          where: { uuid },
         });
         if (!existingDetail) {
           await DetailUsers.create({
-            uuid_user: uuid_user,
+            uuid: uuid,
             username: username,
             email: email,
             firstName: "",
@@ -38,11 +38,11 @@ const listenUserActivatedQueue = async () => {
             link_pict: "",
           });
           console.log(
-            `[user-service] Successfully created DetailUsers record for uuid_user: ${uuid_user}`,
+            `[user-service] Successfully created DetailUsers record for uuid: ${uuid}`,
           );
         } else {
           console.log(
-            `[user-service] DetailUsers record for uuid_user ${uuid_user} already exists.`,
+            `[user-service] DetailUsers record for uuid ${uuid} already exists.`,
           );
         }
       } catch (err) {

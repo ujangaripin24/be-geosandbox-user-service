@@ -9,9 +9,6 @@ const path = require("path");
 const database = require("./config/database.config");
 const userRouter = require("./routes/user.route");
 const messageBroker = require("./config/message-broker.config");
-const {
-  listenUserActivatedQueue,
-} = require("./pkg/message-broker/user.subscriber");
 
 dotenv.config();
 
@@ -45,7 +42,6 @@ app.listen(process.env.APP_PORT, async () => {
   try {
     await database.authenticate();
     await messageBroker.connectRabbitMQ();
-    await listenUserActivatedQueue();
   } catch (error) {
     console.error("Unable to start server:");
     console.error(error.message);

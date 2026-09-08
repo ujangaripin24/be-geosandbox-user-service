@@ -33,24 +33,24 @@ const GetUserDetailController = async (req, res) => {
     return res.status(500).json(formatError(error.message, "server"));
   }
 };
-const UserUpdateController = async (req, res) => {
+
+const UserUpdateController = async (req, res, next) => {
+  let uuid = req.user.uuid;
+  console.log("User Update Controller: ", uuid);
   try {
-    let { uuid } = req.params;
     let body = req.body;
-    await UserUpdateService(uuid, body);
+    let updatedUser = await UserUpdateService(uuid, body);
     await deliverMessageData("user_update", {
-      uuid: uuid,
-      username: body ? body.username : "",
-      email: body ? body.email : "",
+      uuid: updatedUser.uuid,
+      username: updatedUser.username,
+      email: updatedUser.email,
     });
-    res.status({
-      status: 200,
-      data: "updated success",
-    });
+    return res.status(200).json({ message: "User updated successfully" });
   } catch (error) {
     return res.status(500).json(formatError(error.message, "server"));
   }
 };
+
 
 module.exports = {
   GetAllUsersController,

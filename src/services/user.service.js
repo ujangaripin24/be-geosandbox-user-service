@@ -7,11 +7,11 @@ const GetAllUsersService = async ({ page = 1, size = 10, search = "" }) => {
 
   const where = search
     ? {
-        [Op.or]: [
-          { username: { [Op.like]: `%${search}%` } },
-          { email: { [Op.like]: `%${search}%` } },
-        ],
-      }
+      [Op.or]: [
+        { username: { [Op.like]: `%${search}%` } },
+        { email: { [Op.like]: `%${search}%` } },
+      ],
+    }
     : {};
 
   const { rows, count } = await DetailUsers.findAndCountAll({
@@ -47,7 +47,6 @@ const GetUserByUUIDService = async (uuid) => {
     where: { uuid },
     attributes: [
       "uuid",
-      "uuid_user",
       "username",
       "email",
       "firstName",
@@ -59,7 +58,9 @@ const GetUserByUUIDService = async (uuid) => {
 };
 
 const UserUpdateService = async (uuid, payload) => {
-  let user = await DetailUsers.findOne({ where: { uuid } });
+  let user = await DetailUsers.findOne({
+    where: { uuid }
+  });
   if (!user) {
     throw new Error("User not found");
   }
