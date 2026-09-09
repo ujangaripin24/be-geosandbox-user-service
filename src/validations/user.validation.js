@@ -28,6 +28,7 @@ const UpdateUserValidator = [
   body("lastName").notEmpty().withMessage("lastName tidak boleh kosong"),
   body("phone").notEmpty().withMessage("phone tidak boleh kosong"),
   body("gender").notEmpty().withMessage("gender tidak boleh kosong"),
-  body("address").notEmpty().withMessage("address tidak boleh kosong"),
   body("link_pict").notEmpty().withMessage("link_pict tidak boleh kosong"),
 ];
+
+module.exports = { UpdateUserValidator }

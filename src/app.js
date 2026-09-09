@@ -8,6 +8,7 @@ const fs = require("fs");
 const path = require("path");
 const database = require("./config/database.config");
 const userRouter = require("./routes/user.route");
+const addressRouter = require("./routes/address.route")
 const messageBroker = require("./config/message-broker.config");
 const { listenUserActivatedQueue } = require("./pkg/message-broker/user.subscriber");
 
@@ -32,6 +33,7 @@ app.get("/", (req, res) => {
   });
 });
 
+app.use("/api/v1", addressRouter);
 app.use("/api/v1", userRouter);
 
 app.use((req, res, next) => {

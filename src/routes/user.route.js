@@ -8,6 +8,8 @@ const {
   authenticateTokenGuard,
   authenticateTokenRole,
 } = require("../middlewares/guard.middleware");
+const { UpdateUserValidator } = require("../validations/user.validation");
+const { validationResult } = require("express-validator");
 
 const router = express.Router();
 
@@ -40,6 +42,13 @@ router.get(
 );
 router.get("/users/get-all", authenticateTokenGuard, GetAllUsersController);
 router.get("/users/detail/:uuid", GetUserDetailController);
-router.put("/users/update/:uuid", authenticateTokenGuard, UserUpdateController);
+router.put("/users/update/:uuid", UpdateUserValidator, authenticateTokenGuard, (req, res, next) => {
+  const errors = validationResult(req)
+  if (!errors.isEmpty()) {
+    return res.status(400).json({ errors: errors.array() });
+  } else {
+    next()
+  }
+}, UserUpdateController);
 
 module.exports = router;
