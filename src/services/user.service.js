@@ -23,7 +23,6 @@ const GetAllUsersService = async ({ page = 1, size = 10, search = "" }) => {
       "lastName",
       "phone",
       "gender",
-      "address",
       "link_pict",
     ],
     where,
@@ -71,7 +70,6 @@ const UserUpdateService = async (uuid, payload) => {
     lastName,
     phone,
     gender,
-    address,
     link_pict,
   } = payload;
 
@@ -81,7 +79,6 @@ const UserUpdateService = async (uuid, payload) => {
   user.lastName = lastName;
   user.phone = phone;
   user.gender = gender;
-  user.address = address;
   user.link_pict = link_pict;
 
   await user.save();

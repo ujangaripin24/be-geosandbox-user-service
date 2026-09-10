@@ -34,7 +34,6 @@ const listenUserActivatedQueue = async () => {
             lastName: "",
             phone: "",
             gender: "tidak ada",
-            address: "",
             link_pict: "",
           });
           console.log(

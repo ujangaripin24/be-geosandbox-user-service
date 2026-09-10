@@ -42,7 +42,7 @@ router.get(
 );
 router.get("/users/get-all", authenticateTokenGuard, GetAllUsersController);
 router.get("/users/detail/:uuid", GetUserDetailController);
-router.put("/users/update/:uuid", UpdateUserValidator, authenticateTokenGuard, (req, res, next) => {
+router.put("/users/update", authenticateTokenGuard, UpdateUserValidator, (req, res, next) => {
   const errors = validationResult(req)
   if (!errors.isEmpty()) {
     return res.status(400).json({ errors: errors.array() });

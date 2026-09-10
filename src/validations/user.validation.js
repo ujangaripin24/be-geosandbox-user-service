@@ -10,7 +10,7 @@ const UpdateUserValidator = [
     .withMessage("Email tidak valid")
     .custom(async (a) => {
       try {
-        let existingUser = await DetailUsers.findOne({ where: { email: a } });
+        const existingUser = await DetailUsers.findOne({ where: { email: a } });
         if (existingUser) {
           throw new Error("email sudah terdaftar");
         }
@@ -31,4 +31,4 @@ const UpdateUserValidator = [
   body("link_pict").notEmpty().withMessage("link_pict tidak boleh kosong"),
 ];
 
-module.exports = { UpdateUserValidator }
+module.exports = { UpdateUserValidator };

@@ -35,9 +35,9 @@ const GetUserDetailController = async (req, res) => {
 };
 
 const UserUpdateController = async (req, res, next) => {
-  let uuid = req.user.uuid;
-  console.log("User Update Controller: ", uuid);
-  try {
+  try {  
+    let uuid = req.user.uuid;
+    console.log("User Update Controller: ", uuid);
     let body = req.body;
     let updatedUser = await UserUpdateService(uuid, body);
     await deliverMessageData("user_update", {
