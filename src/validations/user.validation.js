@@ -4,31 +4,31 @@ const DetailUsers = db.DetailUsers;
 
 const UpdateUserValidator = [
   body("email")
-    .notEmpty()
-    .withMessage("Email tidak boleh kosong")
+    .optional()
     .isEmail()
     .withMessage("Email tidak valid")
-    .custom(async (a) => {
-      try {
-        const existingUser = await DetailUsers.findOne({ where: { email: a } });
-        if (existingUser) {
-          throw new Error("email sudah terdaftar");
-        }
-        return true;
-      } catch (error) {
-        if (error.message === "email sudah terdaftar") {
-          throw error;
-        }
-        console.error("Database error during email validation:", error.message);
-        throw new Error("Gagal memverifikasi email pada database");
+    .bail()
+    .custom(async (value, { req }) => {
+      const existingUser = await DetailUsers.findOne({
+        where: { email: value },
+        attributes: ["uuid"],
+      });
+
+      if (
+        existingUser &&
+        String(existingUser.uuid) !== String(req.user?.uuid)
+      ) {
+        throw new Error("email sudah terdaftar");
       }
+
+      return true;
     }),
-  body("username").notEmpty().withMessage("username tidak boleh kosong"),
-  body("firstName").notEmpty().withMessage("firstName tidak boleh kosong"),
-  body("lastName").notEmpty().withMessage("lastName tidak boleh kosong"),
-  body("phone").notEmpty().withMessage("phone tidak boleh kosong"),
-  body("gender").notEmpty().withMessage("gender tidak boleh kosong"),
-  body("link_pict").notEmpty().withMessage("link_pict tidak boleh kosong"),
+  body("username").optional().notEmpty().withMessage("username tidak boleh kosong"),
+  body("firstName").optional().notEmpty().withMessage("firstName tidak boleh kosong"),
+  body("lastName").optional().notEmpty().withMessage("lastName tidak boleh kosong"),
+  body("phone").optional().notEmpty().withMessage("phone tidak boleh kosong"),
+  body("gender").optional().notEmpty().withMessage("gender tidak boleh kosong"),
+  body("link_pict").optional().notEmpty().withMessage("link_pict tidak boleh kosong"),
 ];
 
 module.exports = { UpdateUserValidator };

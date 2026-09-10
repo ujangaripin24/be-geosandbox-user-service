@@ -63,23 +63,21 @@ const UserUpdateService = async (uuid, payload) => {
   if (!user) {
     throw new Error("User not found");
   }
-  let {
-    username,
-    email,
-    firstName,
-    lastName,
-    phone,
-    gender,
-    link_pict,
-  } = payload;
+  const editableFields = [
+    "username",
+    "email",
+    "firstName",
+    "lastName",
+    "phone",
+    "gender",
+    "link_pict",
+  ];
 
-  user.username = username;
-  user.email = email;
-  user.firstName = firstName;
-  user.lastName = lastName;
-  user.phone = phone;
-  user.gender = gender;
-  user.link_pict = link_pict;
+  for (const field of editableFields) {
+    if (Object.prototype.hasOwnProperty.call(payload, field)) {
+      user[field] = payload[field];
+    }
+  }
 
   await user.save();
   return user;
