@@ -40,8 +40,8 @@ router.get(
     });
   },
 );
-router.get("/users/get-all", authenticateTokenGuard, GetAllUsersController);
-router.get("/users/detail/:uuid", GetUserDetailController);
+router.get("/users/get-all", GetAllUsersController);
+router.get("/users/detail/:uuid", authenticateTokenGuard, GetUserDetailController);
 router.put("/users/update", authenticateTokenGuard, UpdateUserValidator, (req, res, next) => {
   const errors = validationResult(req)
   if (!errors.isEmpty()) {
