@@ -1,5 +1,5 @@
 const { formatError } = require("../pkg/error-formatter.pkg");
-const { CreateAddressService } = require("../services/address.service");
+const { CreateAddressService, GetDetailUserAddress } = require("../services/address.service");
 
 const CreateAddressController = async (req, res, next) => {
     try {
@@ -18,4 +18,21 @@ const CreateAddressController = async (req, res, next) => {
     }
 }
 
-module.exports = { CreateAddressController };
+const GetDetailUserAddressController = async (req, res, next) => {
+    try {
+        let uuid = req.user.uuid;
+        let data = await GetDetailUserAddress(uuid);
+        return res.status(200).json({
+            message: "Detail alamat user berhasil diambil.",
+            data
+        });
+    } catch (error) {
+        console.error("Error in GetDetailUserAddressController:", error);
+        if (error.message === "User not found") {
+            return res.status(404).json(formatError(error.message, "user"));
+        }
+        return res.status(500).json(formatError(error.message, "server"));
+    }
+}
+
+module.exports = { CreateAddressController, GetDetailUserAddressController };

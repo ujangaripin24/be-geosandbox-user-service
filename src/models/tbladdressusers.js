@@ -10,10 +10,10 @@ module.exports = (sequelize, DataTypes) => {
      * The `models/index` file will call this method automatically.
      */
     static associate(models) {
-      // define association here
       TblAddressUsers.belongsTo(models.DetailUsers, {
         foreignKey: 'uuid_user',
-        targetKey: 'uuid'
+        targetKey: 'uuid_user',
+        as: 'user'
       });
     }
   }
