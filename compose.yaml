@@ -13,7 +13,9 @@ services:
       - .env
     expose:
       - "3630"
+    networks:
+      - global-network-geosandbox
 
 networks:
-    global-network-geosandbox:
-      external: true
+  global-network-geosandbox:
+    external: true

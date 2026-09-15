@@ -12,7 +12,7 @@ module.exports = (sequelize, DataTypes) => {
     static associate(models) {
       DetailUsers.hasMany(models.TblAddressUsers, {
         foreignKey: 'uuid_user',
-        sourceKey: 'uuid_user',
+        sourceKey: 'uuid',
         as: 'addresses'
       });
     }
