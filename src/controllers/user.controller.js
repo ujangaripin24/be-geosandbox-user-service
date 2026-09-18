@@ -51,7 +51,6 @@ const UserUpdateController = async (req, res, next) => {
   }
 };
 
-
 module.exports = {
   GetAllUsersController,
   GetUserDetailController,
