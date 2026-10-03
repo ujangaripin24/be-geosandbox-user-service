@@ -26,8 +26,7 @@ const CreateAddressService = async (uuid, body) => {
 
 const GetDetailUserAddress = async (uuid) => {
     let user = await DetailUsers.findOne({
-        where: { uuid_user: uuid },
-        attributes: ['username', 'email'],
+        where: { uuid: uuid },
         include: [{
             model: TblAddressUsers,
             as: 'addresses',
@@ -42,6 +41,11 @@ const GetDetailUserAddress = async (uuid) => {
     return {
         username: user.username,
         email: user.email,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        phone: user.phone,
+        gender: user.gender,
+        link_pict: user.link_pict,
         detail: user.addresses
     };
 }
