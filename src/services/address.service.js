@@ -2,7 +2,7 @@ const { TblAddressUsers, DetailUsers } = require('../models');
 
 const CreateAddressService = async (uuid, body) => {
     let user = await DetailUsers.findOne({
-        where: { uuid_user: uuid }
+        where: { uuid: uuid }
     });
 
     if (!user) {
