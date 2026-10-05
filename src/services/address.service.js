@@ -50,4 +50,18 @@ const GetDetailUserAddress = async (uuid) => {
     };
 }
 
-module.exports = { CreateAddressService, GetDetailUserAddress };
+const DeleteDetailAddressService = async (uuid) => {
+    let userAddress = await TblAddressUsers.findOne({
+        where: { uuid: uuid }
+    });
+
+    if (!userAddress) {
+        throw new Error("User Address not found");
+    }
+
+    await userAddress.destroy();
+
+    return "Data service berhasil dihapus";
+}
+
+module.exports = { CreateAddressService, GetDetailUserAddress, DeleteDetailAddressService };
