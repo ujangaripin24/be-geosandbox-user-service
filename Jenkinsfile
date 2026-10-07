@@ -6,7 +6,6 @@ pipeline {
     }
 
     environment {
-        // AWS Region (digunakan saat deployment production ke AWS)
         AWS_DEFAULT_REGION = "${env.AWS_DEFAULT_REGION ?: 'ap-southeast-1'}"
         AWS_REGION         = "${env.AWS_REGION ?: 'ap-southeast-1'}"
     }
@@ -44,9 +43,6 @@ pipeline {
             }
         }
 
-        // =====================================================================
-        // STAGE 1: DEVELOPMENT (Deploy ke Docker Container Lokal via terraform/dev)
-        // =====================================================================
         stage('🐳 Deploy Development (Local Docker)') {
             when {
                 expression {
@@ -73,9 +69,6 @@ pipeline {
             }
         }
 
-        // =====================================================================
-        // STAGE 2: PRODUCTION (Deploy ke AWS EC2 via terraform/prod)
-        // =====================================================================
         stage('☁️ Deploy Production (AWS EC2)') {
             when {
                 expression {
