@@ -31,3 +31,9 @@ tmp/
 /generated/prisma
 *.txt
 *.txt
+# Terraform
+.terraform/
+*.tfstate
+*.tfstate.*
+.terraform.lock.hcl
+tfplan
