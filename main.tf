@@ -48,7 +48,6 @@ variable "ssh_key_name" {
 # ==============================================================================
 # DATA SOURCES
 # ==============================================================================
-# Mengambil AMI Ubuntu 22.04 LTS resmi Canonical
 data "aws_ami" "ubuntu" {
   most_recent = true
   filter {
@@ -59,7 +58,7 @@ data "aws_ami" "ubuntu" {
     name   = "virtualization-type"
     values = ["hvm"]
   }
-  owners = ["099720109477"] # Canonical
+  owners = ["099720109477"]
 }
 
 # ==============================================================================
@@ -69,7 +68,6 @@ resource "aws_security_group" "user_service_sg" {
   name        = "be-geosandbox-user-service-sg-${var.environment}"
   description = "Security Group untuk Geosandbox User Service"
 
-  # Akses SSH
   ingress {
     description = "Akses SSH"
     from_port   = 22
@@ -78,7 +76,6 @@ resource "aws_security_group" "user_service_sg" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
-  # Port Aplikasi User Service
   ingress {
     description = "Port Aplikasi User Service"
     from_port   = var.app_port
@@ -87,7 +84,6 @@ resource "aws_security_group" "user_service_sg" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
-  # Outbound Traffic
   egress {
     description      = "Semua koneksi outbound"
     from_port        = 0
@@ -111,7 +107,6 @@ resource "aws_instance" "user_service_instance" {
   ami           = data.aws_ami.ubuntu.id
   instance_type = var.instance_type
 
-  # IAM AWS Instance Profile
   iam_instance_profile = "<isi disini>"
 
   vpc_security_group_ids = [aws_security_group.user_service_sg.id]
