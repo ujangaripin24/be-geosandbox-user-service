@@ -11,12 +11,12 @@ provider "docker" {
   host = "unix:///var/run/docker.sock"
 }
 
-resource "docker_network" "local_network" {
+data "docker_network" "local_network" {
   name = "global-network-geosandbox"
 }
 
 resource "docker_image" "app_image" {
-  name = "be-geosandbox-gis-service:latest"
+  name = "be-geosandbox-user-service:latest"
   build {
     context    = "."
     dockerfile = "Dockerfile"
@@ -27,21 +27,21 @@ resource "docker_image" "app_image" {
 }
 
 resource "docker_container" "app" {
-  name    = "gis_service_app"
+  name    = "user_service_app"
   image   = docker_image.app_image.image_id
   restart = "always"
-  command = ["npm", "run dev"]
+  command = ["npm", "run", "dev"]
 
   # 512 * 1024 * 1024 = 536870912
   memory = 536870912
 
   networks_advanced {
-    name = docker_network.local_network.name
+    name = data.docker_network.local_network.name
   }
 
   ports {
-    internal = 3620
-    external = 3620
+    internal = 3630
+    external = 3630
   }
 
   volumes {

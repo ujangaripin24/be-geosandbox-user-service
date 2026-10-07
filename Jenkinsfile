@@ -6,131 +6,131 @@ pipeline {
     }
 
     environment {
+        // AWS Region (digunakan saat deployment production ke AWS)
         AWS_DEFAULT_REGION = "${env.AWS_DEFAULT_REGION ?: 'ap-southeast-1'}"
         AWS_REGION         = "${env.AWS_REGION ?: 'ap-southeast-1'}"
-
-        APP_PORT           = "${env.APP_PORT ?: '3630'}"
-        NODE_ENV           = "${env.NODE_ENV ?: 'production'}"
-
-        POSTGRES_USER      = "${env.POSTGRES_USER}"
-        POSTGRES_PASSWORD  = "${env.POSTGRES_PASSWORD}"
-        POSTGRES_DB        = "${env.POSTGRES_DB}"
-        POSTGRES_PORT      = "${env.POSTGRES_PORT ?: '5434'}"
-
-        DB_HOST            = "${env.DB_HOST}"
-        DB_PORT            = "${env.DB_PORT ?: '5432'}"
-        DB_USER            = "${env.DB_USER}"
-        DB_PASSWORD        = "${env.DB_PASSWORD}"
-        DB_NAME            = "${env.DB_NAME}"
-
-        RABBITMQ_HOST      = "${env.RABBITMQ_HOST}"
-        RABBITMQ_PORT      = "${env.RABBITMQ_PORT ?: '5672'}"
-        RABBITMQ_USER      = "${env.RABBITMQ_USER}"
-        RABBITMQ_PASSWORD  = "${env.RABBITMQ_PASSWORD}"
-
-        REGISTER_TOKEN     = "${env.REGISTER_TOKEN}"
-        ACCESS_TOKEN       = "${env.ACCESS_TOKEN}"
-        REFRESH_TOKEN      = "${env.REFRESH_TOKEN}"
-        BCRYPT_SALT_ROUNDS = "${env.BCRYPT_SALT_ROUNDS ?: '12'}"
     }
 
     stages {
-        stage('🔍 Filter Branch production') {
+        stage('🔍 Check Branch') {
             steps {
                 script {
                     def currentBranch = env.BRANCH_NAME ?: env.GIT_BRANCH ?: ''
-                    echo "Checking branch: ${currentBranch}"
-                    if (currentBranch != '' && !currentBranch.endsWith('production')) {
-                        currentBuild.result = 'ABORTED'
-                        error("Pipeline dibatalkan: Push bukan pada branch production (Current branch: ${currentBranch}).")
-                    }
+                    echo "📌 Current Branch: ${currentBranch}"
                 }
             }
         }
 
-        stage('📝 Generate .env File') {
+        stage('📥 Load Environment (.env)') {
+            when {
+                expression {
+                    def branch = env.BRANCH_NAME ?: env.GIT_BRANCH ?: ''
+                    return branch.contains('development') || branch.contains('dev') ||
+                           branch.contains('production') || branch.contains('prod')
+                }
+            }
             steps {
-                echo "Menyiapkan file .env dari environment variable Jenkins UI..."
-                sh """
-                    cat << 'EOF' > .env
-                    # Application Config
-                    APP_PORT=${APP_PORT}
-                    NODE_ENV=${NODE_ENV}
-
-                    # Database Configuration (PostgreSQL Container)
-                    POSTGRES_USER=${POSTGRES_USER}
-                    POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
-                    POSTGRES_DB=${POSTGRES_DB}
-                    POSTGRES_PORT=${POSTGRES_PORT}
-
-                    # App Connection to DB Container
-                    DB_HOST=${DB_HOST}
-                    DB_PORT=${DB_PORT}
-                    DB_USER=${DB_USER}
-                    DB_PASSWORD=${DB_PASSWORD}
-                    DB_NAME=${DB_NAME}
-
-                    # RabbitMQ Config
-                    RABBITMQ_HOST=${RABBITMQ_HOST}
-                    RABBITMQ_PORT=${RABBITMQ_PORT}
-                    RABBITMQ_USER=${RABBITMQ_USER}
-                    RABBITMQ_PASSWORD=${RABBITMQ_PASSWORD}
-
-                    # JWT Tokens
-                    REGISTER_TOKEN=${REGISTER_TOKEN}
-                    ACCESS_TOKEN=${ACCESS_TOKEN}
-                    REFRESH_TOKEN=${REFRESH_TOKEN}
-                    BCRYPT_SALT_ROUNDS=${BCRYPT_SALT_ROUNDS}
-                    EOF
-                    """
-                sh "chmod 600 .env"
-                echo "✅ File .env berhasil dibuat."
+                echo "Mengambil konfigurasi .env dari Jenkins Credentials (ID: ENV-USER-SERVICE-GEOSANDBOX)..."
+                withCredentials([file(credentialsId: 'ENV-USER-SERVICE-GEOSANDBOX', variable: 'SECRET_ENV_FILE')]) {
+                    sh '''
+                        cp "$SECRET_ENV_FILE" .env
+                        chmod 600 .env
+                        echo "✅ File .env berhasil disalin dari credentials Jenkins."
+                    '''
+                }
             }
         }
 
-        stage('🔧 Terraform Init') {
+        // =====================================================================
+        // STAGE 1: DEVELOPMENT (Deploy ke Docker Container Lokal via main-dev.tf)
+        // =====================================================================
+        stage('🐳 Deploy Development (Local Docker)') {
+            when {
+                expression {
+                    def branch = env.BRANCH_NAME ?: env.GIT_BRANCH ?: ''
+                    return branch.contains('development') || branch.contains('dev')
+                }
+            }
             steps {
-                echo "Inisialisasi Terraform..."
-                sh "terraform init -no-color"
+                echo "🚀 Menjalankan deployment DEVELOPMENT ke Docker Container Lokal via main-dev.tf..."
+                sh '''
+                    # Sembunyikan main-prod.tf (AWS) sementara agar Terraform hanya mengeksekusi main-dev.tf
+                    if [ -f "main-prod.tf" ]; then
+                        mv main-prod.tf main-prod.tf.bak
+                    fi
+
+                    terraform init -no-color
+                    terraform validate -no-color
+                    terraform plan -out=tfplan -no-color
+                    terraform apply -auto-approve tfplan -no-color
+                '''
+            }
+            post {
+                always {
+                    sh '''
+                        rm -f tfplan || true
+                        if [ -f "main-prod.tf.bak" ]; then
+                            mv main-prod.tf.bak main-prod.tf
+                        fi
+                    '''
+                }
+                success {
+                    echo "🎉 Deployment DEVELOPMENT Berhasil! Container user_service_app aktif di Docker lokal."
+                }
             }
         }
 
-        stage('🔍 Terraform Validate') {
-            steps {
-                echo "Memvalidasi syntax Terraform..."
-                sh "terraform validate -no-color"
+        // =====================================================================
+        // STAGE 2: PRODUCTION (Deploy ke AWS EC2 via main-prod.tf)
+        // =====================================================================
+        stage('☁️ Deploy Production (AWS EC2)') {
+            when {
+                expression {
+                    def branch = env.BRANCH_NAME ?: env.GIT_BRANCH ?: ''
+                    return branch.contains('production') || branch.contains('prod')
+                }
             }
-        }
-
-        stage('📋 Terraform Plan') {
             steps {
-                echo "Menyiapkan rencana deployment Terraform..."
-                sh "terraform plan -out=tfplan -no-color"
+                echo "🚀 Menjalankan deployment PRODUCTION ke AWS via main-prod.tf..."
+                sh '''
+                    # Sembunyikan main-dev.tf sementara agar Terraform hanya mengeksekusi main-prod.tf
+                    if [ -f "main-dev.tf" ]; then
+                        mv main-dev.tf main-dev.tf.bak
+                    fi
+
+                    terraform init -no-color
+                    terraform validate -no-color
+                    terraform plan -out=tfplan -no-color
+                    terraform apply -auto-approve tfplan -no-color
+                '''
             }
-        }
-
-        stage('🚀 Terraform Apply (Deploy ke AWS)') {
-            steps {
-                echo "Menjalankan deployment Terraform ke AWS..."
-                sh "terraform apply -auto-approve tfplan -no-color"
+            post {
+                always {
+                    sh '''
+                        rm -f tfplan || true
+                        if [ -f "main-dev.tf.bak" ]; then
+                            mv main-dev.tf.bak main-dev.tf
+                        fi
+                    '''
+                }
+                success {
+                    echo "🎉 Deployment PRODUCTION Berhasil! Instance EC2 AWS telah aktif."
+                    sh "terraform output || true"
+                }
             }
         }
     }
 
     post {
         always {
-            sh "rm -f tfplan || true"
-        }
-        success {
-            echo "=================================================="
-            echo "🎉 Deployment be-geosandbox-user-service ke AWS Berhasil!"
-            echo "=================================================="
-            sh "terraform output || true"
+            sh '''
+                # Pastikan kedua file kembali ke nama semula jika pipeline terhenti
+                if [ -f "main-prod.tf.bak" ]; then mv main-prod.tf.bak main-prod.tf; fi
+                if [ -f "main-dev.tf.bak" ]; then mv main-dev.tf.bak main-dev.tf; fi
+            '''
         }
         failure {
-            echo "=================================================="
-            echo "❌ Deployment Gagal! Silakan periksa log console."
-            echo "=================================================="
+            echo "❌ Pipeline Gagal! Silakan cek log console di atas."
         }
     }
 }
