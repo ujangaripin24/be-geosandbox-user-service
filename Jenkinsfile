@@ -33,16 +33,19 @@ pipeline {
                 echo "Mengambil konfigurasi .env dari Jenkins Credentials (ID: ENV-USER-SERVICE-GEOSANDBOX)..."
                 withCredentials([file(credentialsId: 'ENV-USER-SERVICE-GEOSANDBOX', variable: 'SECRET_ENV_FILE')]) {
                     sh '''
+                        # Salin file .env ke root dan masing-masing folder environment terraform
                         cp "$SECRET_ENV_FILE" .env
-                        chmod 600 .env
-                        echo "✅ File .env berhasil disalin dari credentials Jenkins."
+                        cp "$SECRET_ENV_FILE" terraform/dev/.env
+                        cp "$SECRET_ENV_FILE" terraform/prod/.env
+                        chmod 600 .env terraform/dev/.env terraform/prod/.env
+                        echo "✅ File .env berhasil disiapkan untuk dev dan prod."
                     '''
                 }
             }
         }
 
         // =====================================================================
-        // STAGE 1: DEVELOPMENT (Deploy ke Docker Container Lokal via main-dev.tf)
+        // STAGE 1: DEVELOPMENT (Deploy ke Docker Container Lokal via terraform/dev)
         // =====================================================================
         stage('🐳 Deploy Development (Local Docker)') {
             when {
@@ -52,27 +55,17 @@ pipeline {
                 }
             }
             steps {
-                echo "🚀 Menjalankan deployment DEVELOPMENT ke Docker Container Lokal via main-dev.tf..."
+                echo "🚀 Menjalankan deployment DEVELOPMENT ke Docker Container Lokal (terraform/dev)..."
                 sh '''
-                    # Sembunyikan main-prod.tf (AWS) sementara agar Terraform hanya mengeksekusi main-dev.tf
-                    if [ -f "main-prod.tf" ]; then
-                        mv main-prod.tf main-prod.tf.bak
-                    fi
-
-                    terraform init -no-color
-                    terraform validate -no-color
-                    terraform plan -out=tfplan -no-color
-                    terraform apply -auto-approve tfplan -no-color
+                    terraform -chdir=terraform/dev init -no-color
+                    terraform -chdir=terraform/dev validate -no-color
+                    terraform -chdir=terraform/dev plan -out=tfplan -no-color
+                    terraform -chdir=terraform/dev apply -auto-approve tfplan -no-color
                 '''
             }
             post {
                 always {
-                    sh '''
-                        rm -f tfplan || true
-                        if [ -f "main-prod.tf.bak" ]; then
-                            mv main-prod.tf.bak main-prod.tf
-                        fi
-                    '''
+                    sh 'rm -f terraform/dev/tfplan || true'
                 }
                 success {
                     echo "🎉 Deployment DEVELOPMENT Berhasil! Container user_service_app aktif di Docker lokal."
@@ -81,7 +74,7 @@ pipeline {
         }
 
         // =====================================================================
-        // STAGE 2: PRODUCTION (Deploy ke AWS EC2 via main-prod.tf)
+        // STAGE 2: PRODUCTION (Deploy ke AWS EC2 via terraform/prod)
         // =====================================================================
         stage('☁️ Deploy Production (AWS EC2)') {
             when {
@@ -91,44 +84,27 @@ pipeline {
                 }
             }
             steps {
-                echo "🚀 Menjalankan deployment PRODUCTION ke AWS via main-prod.tf..."
+                echo "🚀 Menjalankan deployment PRODUCTION ke AWS via terraform/prod..."
                 sh '''
-                    # Sembunyikan main-dev.tf sementara agar Terraform hanya mengeksekusi main-prod.tf
-                    if [ -f "main-dev.tf" ]; then
-                        mv main-dev.tf main-dev.tf.bak
-                    fi
-
-                    terraform init -no-color
-                    terraform validate -no-color
-                    terraform plan -out=tfplan -no-color
-                    terraform apply -auto-approve tfplan -no-color
+                    terraform -chdir=terraform/prod init -no-color
+                    terraform -chdir=terraform/prod validate -no-color
+                    terraform -chdir=terraform/prod plan -out=tfplan -no-color
+                    terraform -chdir=terraform/prod apply -auto-approve tfplan -no-color
                 '''
             }
             post {
                 always {
-                    sh '''
-                        rm -f tfplan || true
-                        if [ -f "main-dev.tf.bak" ]; then
-                            mv main-dev.tf.bak main-dev.tf
-                        fi
-                    '''
+                    sh 'rm -f terraform/prod/tfplan || true'
                 }
                 success {
                     echo "🎉 Deployment PRODUCTION Berhasil! Instance EC2 AWS telah aktif."
-                    sh "terraform output || true"
+                    sh 'terraform -chdir=terraform/prod output || true'
                 }
             }
         }
     }
 
     post {
-        always {
-            sh '''
-                # Pastikan kedua file kembali ke nama semula jika pipeline terhenti
-                if [ -f "main-prod.tf.bak" ]; then mv main-prod.tf.bak main-prod.tf; fi
-                if [ -f "main-dev.tf.bak" ]; then mv main-dev.tf.bak main-dev.tf; fi
-            '''
-        }
         failure {
             echo "❌ Pipeline Gagal! Silakan cek log console di atas."
         }

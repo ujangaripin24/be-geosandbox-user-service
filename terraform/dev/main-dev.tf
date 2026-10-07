@@ -18,7 +18,7 @@ data "docker_network" "local_network" {
 resource "docker_image" "app_image" {
   name = "be-geosandbox-user-service:latest"
   build {
-    context    = "."
+    context    = abspath("${path.module}/../..")
     dockerfile = "Dockerfile"
     build_arg = {
       NODE_VERSION = "24.16.0"
@@ -45,7 +45,7 @@ resource "docker_container" "app" {
   }
 
   volumes {
-    host_path      = abspath(path.module)
+    host_path      = abspath("${path.module}/../..")
     container_path = "/usr/src/app"
   }
 
@@ -54,7 +54,7 @@ resource "docker_container" "app" {
   }
 
   env = [
-    for line in compact(split("\n", file("${path.module}/.env"))) : line
+    for line in compact(split("\n", fileexists("${path.module}/.env") ? file("${path.module}/.env") : "")) : line
     if !startswith(line, "#") && length(split("=", line)) > 1
   ]
 }
