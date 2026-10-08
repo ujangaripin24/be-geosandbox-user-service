@@ -10,12 +10,14 @@ const {
 } = require("../middlewares/guard.middleware");
 const { UpdateUserValidator } = require("../validations/user.validation");
 const { validationResult } = require("express-validator");
+const { version } = require("../../package.json");
 
 const router = express.Router();
 
 router.get("/users/health", (req, res) => {
   res.status(200).json({
     status: 200,
+    versionApp: version,
     message: "[SERVICE-USER] Server Berhasil Berjalan",
     date: new Date().toISOString().replace("T", " ").substring(0, 19),
   });
@@ -41,14 +43,24 @@ router.get(
   },
 );
 router.get("/users/get-all", GetAllUsersController);
-router.get("/users/detail/:uuid", authenticateTokenGuard, GetUserDetailController);
-router.put("/users/update", authenticateTokenGuard, UpdateUserValidator, (req, res, next) => {
-  const errors = validationResult(req)
-  if (!errors.isEmpty()) {
-    return res.status(400).json({ errors: errors.array() });
-  } else {
-    next()
-  }
-}, UserUpdateController);
+router.get(
+  "/users/detail/:uuid",
+  authenticateTokenGuard,
+  GetUserDetailController,
+);
+router.put(
+  "/users/update",
+  authenticateTokenGuard,
+  UpdateUserValidator,
+  (req, res, next) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
+    } else {
+      next();
+    }
+  },
+  UserUpdateController,
+);
 
 module.exports = router;
