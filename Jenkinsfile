@@ -53,6 +53,9 @@ pipeline {
             steps {
                 echo "🚀 Menjalankan deployment DEVELOPMENT ke Docker Container Lokal (terraform/dev)..."
                 sh '''
+                    # Hentikan & hapus container lama jika masih ada agar tidak conflict nama container
+                    docker rm -f user_service_app || true
+
                     terraform -chdir=terraform/dev init -no-color
                     terraform -chdir=terraform/dev validate -no-color
                     terraform -chdir=terraform/dev plan -out=tfplan -no-color
