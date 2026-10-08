@@ -34,7 +34,7 @@ app.use(logger("dev"));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-app.get("/api/v1/users", (req, res) => {
+app.get("/", (req, res) => {
   res.status(200).json({
     status: 200,
     message: "[SERVICE-USER] Server Berhasil Berjalan",
