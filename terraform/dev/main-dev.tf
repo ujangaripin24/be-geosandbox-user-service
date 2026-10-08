@@ -30,7 +30,7 @@ resource "docker_container" "app" {
   name    = "user_service_app"
   image   = docker_image.app_image.image_id
   restart = "always"
-  command = ["npm", "run", "dev"]
+  command = ["npm", "start"]
 
   # 512 * 1024 * 1024 = 536870912
   memory = 536870912
@@ -42,15 +42,6 @@ resource "docker_container" "app" {
   ports {
     internal = 3630
     external = 3630
-  }
-
-  volumes {
-    host_path      = abspath("${path.module}/../..")
-    container_path = "/usr/src/app"
-  }
-
-  volumes {
-    container_path = "/usr/src/app/node_modules"
   }
 
   env = [
