@@ -6,7 +6,6 @@ const helmet = require("helmet");
 const createError = require("http-errors");
 const fs = require("fs");
 const path = require("path");
-const { version } = require("../package.json");
 const database = require("./config/database.config");
 const userRouter = require("./routes/user.route");
 const addressRouter = require("./routes/address.route");
@@ -33,15 +32,6 @@ app.use(logger("dev"));
 // app.use(logger('combined', { stream: accessLogStream }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-
-app.get("/", (req, res) => {
-  res.status(200).json({
-    status: 200,
-    message: "[SERVICE-USER] Server Berhasil Berjalan",
-    versionApp: version,
-    date: dateNow,
-  });
-});
 
 app.use("/api/v1", addressRouter);
 app.use("/api/v1", userRouter);
