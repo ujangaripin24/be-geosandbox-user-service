@@ -6,11 +6,14 @@ const helmet = require("helmet");
 const createError = require("http-errors");
 const fs = require("fs");
 const path = require("path");
+const { version } = require("../package.json");
 const database = require("./config/database.config");
 const userRouter = require("./routes/user.route");
-const addressRouter = require("./routes/address.route")
+const addressRouter = require("./routes/address.route");
 const messageBroker = require("./config/message-broker.config");
-const { listenUserActivatedQueue } = require("./pkg/message-broker/user.subscriber");
+const {
+  listenUserActivatedQueue,
+} = require("./pkg/message-broker/user.subscriber");
 
 dotenv.config();
 
@@ -19,20 +22,23 @@ let app = express();
 let dateNow = new Date().toISOString().replace("T", " ").substring(0, 19);
 
 app.use(helmet());
-app.use(cors({
-  origin: ["http://localhost:5173", "http://localhost:3000"],
-  credentials: true,
-  allowedHeaders: ["Content-Type", "Authorization", "X-Client-Type"]
-}));
+app.use(
+  cors({
+    origin: ["http://localhost:5173", "http://localhost:3000"],
+    credentials: true,
+    allowedHeaders: ["Content-Type", "Authorization", "X-Client-Type"],
+  }),
+);
 app.use(logger("dev"));
 // app.use(logger('combined', { stream: accessLogStream }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-app.get("/", (req, res) => {
+app.get("/api/v1/users", (req, res) => {
   res.status(200).json({
     status: 200,
     message: "[SERVICE-USER] Server Berhasil Berjalan",
+    versionApp: version,
     date: dateNow,
   });
 });

@@ -1,6 +1,6 @@
 {
   "name": "be-geosandbox-user-service",
-  "version": "1.0.0",
+  "version": "1.10.5",
   "description": "",
   "main": "index.js",
   "scripts": {
