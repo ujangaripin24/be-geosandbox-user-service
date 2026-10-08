@@ -6,10 +6,13 @@ services:
     container_name: user_service_app
     restart: always
     command: npm start
-    ports:
-      - "${APP_PORT:-3630}:3630"
+    volumes:
+      - .:/usr/src/app
+      - /usr/src/app/node_modules
     env_file:
       - .env
+    expose:
+      - "3630"
     deploy:
       resources:
         limits:
@@ -21,5 +24,4 @@ services:
 
 networks:
   global-network-geosandbox:
-    name: global-network-geosandbox
     external: true
