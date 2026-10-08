@@ -39,10 +39,6 @@ resource "docker_container" "app" {
     name = data.docker_network.local_network.name
   }
 
-  ports {
-    internal = 3630
-    external = 3630
-  }
 
   env = [
     for line in compact(split("\n", fileexists("${path.module}/.env") ? file("${path.module}/.env") : "")) : line
