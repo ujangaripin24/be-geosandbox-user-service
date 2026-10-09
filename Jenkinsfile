@@ -6,8 +6,8 @@ pipeline {
     }
 
     environment {
-        AWS_DEFAULT_REGION = "${env.AWS_DEFAULT_REGION ?: 'ap-southeast-1'}"
-        AWS_REGION         = "${env.AWS_REGION ?: 'ap-southeast-1'}"
+        AWS_DEFAULT_REGION = "${env.AWS_DEFAULT_REGION}"
+        AWS_REGION         = "${env.AWS_REGION}"
     }
 
     stages {
