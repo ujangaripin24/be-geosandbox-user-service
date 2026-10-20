@@ -10,6 +10,11 @@ module.exports = (sequelize, DataTypes) => {
      * The `models/index` file will call this method automatically.
      */
     static associate(models) {
+            DetailUsers.hasMany(models.TblUserLoginHistory, {
+        foreignKey: "uuid_user",
+        sourceKey: "uuid",
+        as: "loginHistories",
+      });
       DetailUsers.hasMany(models.TblAddressUsers, {
         foreignKey: 'uuid_user',
         sourceKey: 'uuid',

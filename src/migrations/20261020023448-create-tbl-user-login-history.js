@@ -1,4 +1,5 @@
 "use strict";
+
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
   async up(queryInterface, Sequelize) {
@@ -11,7 +12,7 @@ module.exports = {
       },
       uuid_user: {
         type: Sequelize.UUID,
-        allowNull: false,
+        allowNull: true,
         references: {
           model: "tbl_detail_users",
           key: "uuid",
@@ -19,27 +20,43 @@ module.exports = {
         onUpdate: "CASCADE",
         onDelete: "CASCADE",
       },
+      email: {
+        type: Sequelize.STRING,
+        allowNull: true,
+      },
       ip_address: {
         type: Sequelize.STRING,
-        allowNull: false,
+        allowNull: true,
+        defaultValue: "Unknown",
       },
       device: {
         type: Sequelize.STRING,
-        allowNull: false,
-      },
-      device: {
-        type: Sequelize.STRING,
-        allowNull: false,
+        allowNull: true,
+        defaultValue: "Desktop",
       },
       browser: {
         type: Sequelize.STRING,
-        allowNull: false,
+        allowNull: true,
+        defaultValue: "Unknown Browser",
       },
       os: {
         type: Sequelize.STRING,
-        allowNull: false,
+        allowNull: true,
+        defaultValue: "Unknown OS",
       },
-      address: {
+      city: {
+        type: Sequelize.STRING,
+        allowNull: true,
+      },
+      region: {
+        type: Sequelize.STRING,
+        allowNull: true,
+      },
+      country: {
+        type: Sequelize.STRING,
+        allowNull: true,
+      },
+      timezone: {
         type: Sequelize.STRING,
         allowNull: true,
       },
@@ -51,10 +68,22 @@ module.exports = {
         type: Sequelize.DECIMAL(11, 8),
         allowNull: true,
       },
+      address: {
+        type: Sequelize.STRING,
+        allowNull: true,
+      },
+      user_agent: {
+        type: Sequelize.TEXT,
+        allowNull: true,
+      },
       status: {
-        type: Sequelize.ENUM(["SUCCESS", "FAILED"]),
-        defaultValue: "FAILED",
+        type: Sequelize.ENUM("SUCCESS", "FAILED"),
+        defaultValue: "SUCCESS",
         allowNull: false,
+      },
+      failure_reason: {
+        type: Sequelize.STRING,
+        allowNull: true,
       },
       login_at: {
         allowNull: false,
@@ -72,8 +101,17 @@ module.exports = {
         defaultValue: Sequelize.fn("NOW"),
       },
     });
+
+    await queryInterface.addIndex("tbl_user_login_history", ["uuid_user"]);
+    await queryInterface.addIndex("tbl_user_login_history", ["ip_address"]);
+    await queryInterface.addIndex("tbl_user_login_history", ["login_at"]);
+    await queryInterface.addIndex("tbl_user_login_history", ["uuid_user", "login_at"]);
   },
+
   async down(queryInterface, Sequelize) {
     await queryInterface.dropTable("tbl_user_login_history");
+    await queryInterface.sequelize.query(
+      'DROP TYPE IF EXISTS "enum_tbl_user_login_history_status";'
+    );
   },
 };
