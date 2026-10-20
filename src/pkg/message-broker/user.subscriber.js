@@ -1,13 +1,14 @@
 const { reciverMessageData, reprocessDLQMessages } = require("./message-broker.pkg");
 const { getChannel, onChannelReady } = require("../../config/message-broker.config");
 const { DetailUsers, TblUserLoginHistory } = require("../../models");
+const { UAParser } = require("ua-parser-js");
 
 let consumerRegistered = false;
 
 const consumeUserActivatedQueue = async () => {
   await reciverMessageData("user_activated", async (msg) => {
     if (!msg) return;
-    
+
     const payload = JSON.parse(msg.content.toString());
     console.log(
       "[user-service] Received 'user_activated' payload:",
@@ -55,13 +56,46 @@ const consumeUserLoginHistoryQueue = async () => {
         payload,
       );
 
+      let browser = payload.browser || "Unknown Browser";
+      let os = payload.os || "Unknown OS";
+      let device = payload.device || "Desktop";
+
+      if (payload.user_agent) {
+        try {
+          const parser = new UAParser(payload.user_agent);
+          const ua = parser.getResult();
+          if (ua.browser && ua.browser.name) {
+            browser = `${ua.browser.name} ${ua.browser.version || ''}`.trim();
+          }
+          if (ua.os && ua.os.name) {
+            os = `${ua.os.name} ${ua.os.version || ''}`.trim();
+          }
+          if (ua.device && ua.device.type) {
+            device = ua.device.type.charAt(0).toUpperCase() + ua.device.type.slice(1);
+          }
+        } catch (uaErr) {
+          console.warn("[user-service] Failed parsing user agent:", uaErr.message);
+        }
+      }
+
+      let validUuidUser = null;
+      if (payload.uuid_user) {
+        const userExists = await DetailUsers.findOne({
+          where: { uuid: payload.uuid_user },
+          attributes: ["uuid"],
+        });
+        if (userExists) {
+          validUuidUser = payload.uuid_user;
+        }
+      }
+
       await TblUserLoginHistory.create({
-        uuid_user: payload.uuid_user || null,
+        uuid_user: validUuidUser,
         email: payload.email || null,
         ip_address: payload.ip_address || "Unknown",
-        device: payload.device || "Desktop",
-        browser: payload.browser || "Unknown Browser",
-        os: payload.os || "Unknown OS",
+        device: device,
+        browser: browser,
+        os: os,
         city: payload.city || null,
         region: payload.region || null,
         country: payload.country || null,
