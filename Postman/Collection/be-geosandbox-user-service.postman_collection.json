@@ -1,125 +1,171 @@
 {
-  "info": {
-    "_postman_id": "448332a9-52f2-4817-8463-b007081c007b",
-    "name": "be-geosandbox-user-service",
-    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
-    "_exporter_id": "21807576",
-    "_collection_link": "https://go.postman.co/collection/21807576-448332a9-52f2-4817-8463-b007081c007b?source=collection_link"
-  },
-  "item": [
-    {
-      "name": "get profile detail",
-      "request": {
-        "auth": {
-          "type": "bearer",
-          "bearer": [
-            {
-              "key": "token",
-              "value": "",
-              "type": "string"
-            }
-          ]
-        },
-        "method": "GET",
-        "header": [],
-        "url": {
-          "raw": "http://localhost:8000/api/v1/user/address",
-          "protocol": "http",
-          "host": [
-            "localhost"
-          ],
-          "port": "8000",
-          "path": [
-            "api",
-            "v1",
-            "user",
-            "address"
-          ]
-        }
-      },
-      "response": []
-    },
-    {
-      "name": "update user one-by-one",
-      "request": {
-        "auth": {
-          "type": "bearer",
-          "bearer": [
-            {
-              "key": "token",
-              "value": "",
-              "type": "string"
-            }
-          ]
-        },
-        "method": "PUT",
-        "header": [],
-        "body": {
-          "mode": "raw",
-          "raw": "{\r\n    \"firstName\": \"Nama Depan\"\r\n}",
-          "options": {
-            "raw": {
-              "language": "json"
-            }
-          }
-        },
-        "url": {
-          "raw": "http://localhost:8000/api/v1/users/update",
-          "protocol": "http",
-          "host": [
-            "localhost"
-          ],
-          "port": "8000",
-          "path": [
-            "api",
-            "v1",
-            "users",
-            "update"
-          ]
-        }
-      },
-      "response": []
-    },
-    {
-      "name": "add address for user",
-      "request": {
-        "auth": {
-          "type": "bearer",
-          "bearer": [
-            {
-              "key": "token",
-              "value": "",
-              "type": "string"
-            }
-          ]
-        },
-        "method": "POST",
-        "header": [],
-        "body": {
-          "mode": "raw",
-          "raw": "{\r\n    \"negara\": \"Indonesia\",\r\n    \"address\": \"Sekekuda, RT/RW: 001/003, Bandung, Jawa Barat\",\r\n    \"kota\": \"Bandung\",\r\n    \"provinsi\": \"Jawa Barat\",\r\n    \"kode_pos\": 475\r\n}",
-          "options": {
-            "raw": {
-              "language": "json"
-            }
-          }
-        },
-        "url": {
-          "raw": "http://localhost:8000/api/v1/user/create-address",
-          "protocol": "http",
-          "host": [
-            "localhost"
-          ],
-          "port": "8000",
-          "path": [
-            "api",
-            "v1",
-            "user",
-            "create-address"
-          ]
-        }
-      },
-      "response": []
-    }
-  ]
+	"info": {
+		"_postman_id": "448332a9-52f2-4817-8463-b007081c007b",
+		"name": "be-geosandbox-user-service",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "21807576",
+		"_collection_link": "https://blue-rocket-102937.postman.co/workspace/My-Workspace~09f9e03d-cd71-4a80-83f3-6765d15cbdb6/collection/21807576-448332a9-52f2-4817-8463-b007081c007b?action=share&source=collection_link&creator=21807576"
+	},
+	"item": [
+		{
+			"name": "get profile detail",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8000/api/v1/user/address",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8000",
+					"path": [
+						"api",
+						"v1",
+						"user",
+						"address"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "get history user login",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1dWlkIjoiZmJjMDVkZDAtMWU0YS00NmEwLWIwODMtNjA0NWI3MTM3ZDQ2IiwiZW1haWwiOiJtb3hpbWFrOTY2QGVuc3Byb3h5LmNvbSIsInJvbGUiOiJ1c2VyIiwiaWF0IjoxNzkyNTc2MDczLCJleHAiOjE3OTI1NzY5NzN9.KcfR3wMmSpKpPxE3esqIs_xYD-Ig6XITYEuPLrAXHr4",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "https://localhost:8000/api/v1/users/login-history?search=&size=10&page=1",
+					"protocol": "https",
+					"host": [
+						"localhost"
+					],
+					"port": "8000",
+					"path": [
+						"api",
+						"v1",
+						"users",
+						"login-history"
+					],
+					"query": [
+						{
+							"key": "search",
+							"value": ""
+						},
+						{
+							"key": "size",
+							"value": "10"
+						},
+						{
+							"key": "page",
+							"value": "1"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "update user one-by-one",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "",
+							"type": "string"
+						}
+					]
+				},
+				"method": "PUT",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"firstName\": \"Nama Depan\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8000/api/v1/users/update",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8000",
+					"path": [
+						"api",
+						"v1",
+						"users",
+						"update"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "add address for user",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"negara\": \"Indonesia\",\r\n    \"address\": \"Sekekuda, RT/RW: 001/003, Bandung, Jawa Barat\",\r\n    \"kota\": \"Bandung\",\r\n    \"provinsi\": \"Jawa Barat\",\r\n    \"kode_pos\": 475\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8000/api/v1/user/create-address",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8000",
+					"path": [
+						"api",
+						"v1",
+						"user",
+						"create-address"
+					]
+				}
+			},
+			"response": []
+		}
+	]
 }
