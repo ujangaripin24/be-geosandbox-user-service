@@ -47,7 +47,7 @@
 					"bearer": [
 						{
 							"key": "token",
-							"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1dWlkIjoiZmJjMDVkZDAtMWU0YS00NmEwLWIwODMtNjA0NWI3MTM3ZDQ2IiwiZW1haWwiOiJtb3hpbWFrOTY2QGVuc3Byb3h5LmNvbSIsInJvbGUiOiJ1c2VyIiwiaWF0IjoxNzkyNTc2MDczLCJleHAiOjE3OTI1NzY5NzN9.KcfR3wMmSpKpPxE3esqIs_xYD-Ig6XITYEuPLrAXHr4",
+							"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1dWlkIjoiZmJjMDVkZDAtMWU0YS00NmEwLWIwODMtNjA0NWI3MTM3ZDQ2IiwiZW1haWwiOiJtb3hpbWFrOTY2QGVuc3Byb3h5LmNvbSIsInJvbGUiOiJ1c2VyIiwiaWF0IjoxNzkyNjM4NTE2LCJleHAiOjE3OTI2Mzk0MTZ9.NXtELlDy0r50YH3KpwN24hFiSBmfshp2v3NN2QZwYHU",
 							"type": "string"
 						}
 					]
@@ -55,7 +55,7 @@
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "https://localhost:8000/api/v1/users/login-history?search=&size=10&page=1",
+					"raw": "https://localhost:8000/api/v1/users/login-history?search=2026-10-21&size=10&page=1",
 					"protocol": "https",
 					"host": [
 						"localhost"
@@ -70,7 +70,7 @@
 					"query": [
 						{
 							"key": "search",
-							"value": ""
+							"value": "2026-10-21"
 						},
 						{
 							"key": "size",

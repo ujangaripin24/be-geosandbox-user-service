@@ -19,9 +19,7 @@ const GetAllLoginHistoryService = async ({
     : "DESC";
 
   const userCondition = email
-    ? {
-        [Op.or]: [{ uuid_user }, { email }],
-      }
+    ? { [Op.or]: [{ uuid_user }, { email }] }
     : { uuid_user };
 
   let where = userCondition;
@@ -30,20 +28,9 @@ const GetAllLoginHistoryService = async ({
     where = {
       [Op.and]: [
         userCondition,
-        {
-          [Op.or]: [
-            { email: { [Op.like]: `%${search}%` } },
-            { ip_address: { [Op.like]: `%${search}%` } },
-            { device: { [Op.like]: `%${search}%` } },
-            { browser: { [Op.like]: `%${search}%` } },
-            { os: { [Op.like]: `%${search}%` } },
-            { status: { [Op.like]: `%${search}%` } },
-            Sequelize.where(
-              Sequelize.cast(Sequelize.col("login_at"), "varchar"),
-              { [Op.like]: `%${search}%` },
-            ),
-          ],
-        },
+        Sequelize.where(Sequelize.cast(Sequelize.col("login_at"), "varchar"), {
+          [Op.like]: `%${search}%`,
+        }),
       ],
     };
   }
@@ -68,6 +55,7 @@ const GetAllLoginHistoryService = async ({
   });
 
   const totalPages = Math.ceil(count / limit);
+
   return {
     data: rows,
     size: limit,
