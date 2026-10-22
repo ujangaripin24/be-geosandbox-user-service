@@ -12,4 +12,10 @@ router.get(
   GetAllLoginHistoryController,
 );
 
+router.get(
+  "/user/login-history",
+  authenticateTokenGuard,
+  GetAllLoginHistoryController,
+);
+
 module.exports = router;
