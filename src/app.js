@@ -11,6 +11,7 @@ const userRouter = require("./routes/user.route");
 const addressRouter = require("./routes/address.route");
 const loginHistory = require("./routes/login-history.route");
 const messageBroker = require("./config/message-broker.config");
+const rustfsClient = require("./config/storage-s3.config");
 const {
   listenUserActivatedQueue,
 } = require("./pkg/message-broker/user.subscriber");
@@ -47,6 +48,7 @@ app.listen(process.env.APP_PORT, async () => {
   try {
     await database.authenticate();
     await messageBroker.connectRabbitMQ();
+    await rustfsClient.connectionStorageS3();
     await listenUserActivatedQueue();
   } catch (error) {
     console.error("Unable to start server:");
