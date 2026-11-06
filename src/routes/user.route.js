@@ -1,8 +1,12 @@
 const express = require("express");
+const multer = require("multer");
 const {
   GetAllUsersController,
   GetUserDetailController,
   UserUpdateController,
+  UploadPicsProfileController,
+  UpdatePicsProfileController,
+  DeletePicsProfileController,
 } = require("../controllers/user.controller");
 const {
   authenticateTokenGuard,
@@ -13,6 +17,10 @@ const { validationResult } = require("express-validator");
 const { version } = require("../../package.json");
 
 const router = express.Router();
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 5 * 1024 * 1024 }, // Maksimal 5MB
+});
 
 router.get("/users/health", (req, res) => {
   res.status(200).json({
@@ -63,4 +71,29 @@ router.put(
   UserUpdateController,
 );
 
+router.post(
+  "/users/upload-profile",
+  authenticateTokenGuard,
+  upload.any(),
+  UploadPicsProfileController,
+);
+router.put(
+  "/users/upload-profile",
+  authenticateTokenGuard,
+  upload.any(),
+  UploadPicsProfileController,
+);
+router.put(
+  "/users/update-profile-pic",
+  authenticateTokenGuard,
+  upload.any(),
+  UpdatePicsProfileController,
+);
+router.delete(
+  "/users/delete-profile-pic",
+  authenticateTokenGuard,
+  DeletePicsProfileController,
+);
+
 module.exports = router;
+
