@@ -6,6 +6,8 @@ const {
   UserUpdateController,
   UploadPicsProfileController,
   DeletePicsProfileController,
+  UploadCoverPicsProfileController,
+  DeleteCoverPicsProfileController,
 } = require("../controllers/user.controller");
 const {
   authenticateTokenGuard,
@@ -89,11 +91,39 @@ router.put(
   },
   UploadPicsProfileController,
 );
+
+router.put(
+  "/users/upload-cover-pics",
+  authenticateTokenGuard,
+  (req, res, next) => {
+    maxUploadFile.any()(req, res, (err) => {
+      if (err) {
+        if (err.code === "LIMIT_FILE_SIZE") {
+          return res
+            .status(400)
+            .json(
+              formatError("Ukuran file tidak boleh lebih dari 5MB", "file"),
+            );
+        }
+        return res.status(400).json(formatError(err.message, "file"));
+      }
+      next();
+    });
+  },
+  UploadCoverPicsProfileController,
+)
+
 router.delete(
   "/users/delete/upload-profile",
   authenticateTokenGuard,
   DeletePicsProfileController,
 );
+
+router.delete(
+  "/users/delete/upload-conver-pics",
+  authenticateTokenGuard,
+  DeleteCoverPicsProfileController
+)
 
 module.exports = router;
 

@@ -4,6 +4,8 @@ const {
   GetUserByUUIDService,
   UploadPicsProfileService,
   DeletePicsProfileService,
+  UploadCoverPicsProfileService,
+  DeleteCoverPicsProfileService,
 } = require("../services/user.service");
 const { formatError } = require("../pkg/error-formatter.pkg");
 const {
@@ -90,7 +92,45 @@ const UploadPicsProfileController = async (req, res, next) => {
       message: result.isReplaced
         ? "Foto profil berhasil diperbarui"
         : "Foto profil berhasil diunggah",
-      data: result,
+    });
+  } catch (error) {
+    if (error.message.includes("Ukuran file")) {
+      return res.status(400).json(formatError(error.message, "file"));
+    }
+    return res.status(500).json(formatError(error.message, "server"));
+  }
+};
+
+const UploadCoverPicsProfileController = async (req, res, next) => {
+  try {
+    const uuid = req.user.uuid;
+    const file = getUploadedFile(req);
+
+    console.log("[user.controller] uuid: ", uuid)
+    console.log("[user.controller] file: ", file)
+
+    if (!file) {
+      return res
+        .status(400)
+        .json(formatError("File gambar wajib diunggah", "file"));
+    }
+
+    if (!ALLOWED_IMAGE_MIME_TYPES.includes(file.mimetype)) {
+      return res
+        .status(400)
+        .json(
+          formatError(
+            "Format file tidak didukung. Gunakan JPG, JPEG, PNG, atau WEBP",
+            "file",
+          ),
+        );
+    }
+
+    const result = await UploadCoverPicsProfileService(uuid, file);
+    return res.status(200).json({
+      message: result.isReplaced
+        ? "Foto sampul berhasil diperbarui"
+        : "Foto sampul berhasil diupdate",
     });
   } catch (error) {
     if (error.message.includes("Ukuran file")) {
@@ -116,11 +156,29 @@ const DeletePicsProfileController = async (req, res, next) => {
   }
 };
 
+const DeleteCoverPicsProfileController = async (req, res, next) => {
+  try {
+    const uuid = req.user.uuid;
+    const result = await DeleteCoverPicsProfileService(uuid);
+    return res.status(200).json({
+      message: "Foto sampul berhasil dihapus",
+      data: result,
+    });
+  } catch (error) {
+    if (error.message.includes("belum tersedia")) {
+      return res.status(404).json(formatError(error.message, "link_cover_pics"));
+    }
+    return res.status(500).json(formatError(error.message, "server"));
+  }
+};
+
 module.exports = {
   GetAllUsersController,
   GetUserDetailController,
   UserUpdateController,
   UploadPicsProfileController,
+  UploadCoverPicsProfileController,
   DeletePicsProfileController,
+  DeleteCoverPicsProfileController
 };
 

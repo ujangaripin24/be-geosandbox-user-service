@@ -46,6 +46,7 @@ const GetDetailUserAddress = async (uuid) => {
         phone: user.phone,
         gender: user.gender,
         link_pict: user.link_pict,
+        link_cover_pics: user.link_cover_pics,
         detail: user.addresses
     };
 }

@@ -1,6 +1,6 @@
 const { Op } = require("sequelize");
 const { DetailUsers } = require("../models");
-const { removeFileFromS3, uploadBufferToS3 } = require("../pkg/storage/storage-s3.pkg");
+const { uploadProfileBufferToS3, uploadCoverProfileBufferToS3, removePicsFileFromS3, removeCoverPicsFileFromS3 } = require("../pkg/storage/storage-s3.pkg");
 
 
 const GetAllUsersService = async ({ page = 1, size = 10, search = "" }) => {
@@ -26,6 +26,7 @@ const GetAllUsersService = async ({ page = 1, size = 10, search = "" }) => {
       "phone",
       "gender",
       "link_pict",
+      "link_cover_pics",
     ],
     where,
     offset,
@@ -55,6 +56,7 @@ const GetUserByUUIDService = async (uuid) => {
       "phone",
       "gender",
       "link_pict",
+      "link_cover_pics",
     ],
   });
   return user;
@@ -75,6 +77,7 @@ const UserUpdateService = async (uuid, payload) => {
     "phone",
     "gender",
     "link_pict",
+    "link_cover_pics",
   ];
 
   for (let field of editableFields) {
@@ -101,10 +104,10 @@ const UploadPicsProfileService = async (uuid, file) => {
 
   let isReplacing = Boolean(user.link_pict);
   if (isReplacing) {
-    await removeFileFromS3(user.link_pict);
+    await removePicsFileFromS3(user.link_pict);
   }
 
-  let { objectKey, fileUrl } = await uploadBufferToS3(uuid, file);
+  let { objectKey, fileUrl } = await uploadProfileBufferToS3(uuid, file);
   user.link_pict = fileUrl;
   await user.save();
 
@@ -117,6 +120,38 @@ const UploadPicsProfileService = async (uuid, file) => {
   };
 };
 
+const UploadCoverPicsProfileService = async (uuid, file) => {
+  let MAX_FILE_SIZE = 5 * 1024 * 1024;
+
+  if (file.size > MAX_FILE_SIZE) {
+    throw new Error("Ukuran file tidak boleh lebih dari 5MB");
+  }
+
+  let user = await DetailUsers.findOne({ where: { uuid } });
+  if (!user) {
+    throw new Error("User not found");
+  }
+  console.log("[user.service]: user", user)
+
+  let isReplacing = Boolean(user.link_cover_pics)
+  if (isReplacing) {
+    await removeCoverPicsFileFromS3(user.link_cover_pics);
+  }
+
+  let { objectKey, fileUrl } = await uploadCoverProfileBufferToS3(uuid, file)
+  user.link_cover_pics = fileUrl;
+  await user.save();
+
+  return {
+    uuid: user.uuid,
+    username: user.username,
+    link_cover_pics: user.link_cover_pics,
+    key: objectKey,
+    isReplaced: isReplacing,
+  };
+
+}
+
 const DeletePicsProfileService = async (uuid) => {
   let user = await DetailUsers.findOne({ where: { uuid } });
   if (!user) {
@@ -127,7 +162,7 @@ const DeletePicsProfileService = async (uuid) => {
     throw new Error("Foto profil belum tersedia atau sudah dihapus");
   }
 
-  await removeFileFromS3(user.link_pict);
+  await removePicsFileFromS3(user.link_pict);
   user.link_pict = "";
   await user.save();
 
@@ -138,12 +173,34 @@ const DeletePicsProfileService = async (uuid) => {
   };
 };
 
+const DeleteCoverPicsProfileService = async (uuid) => {
+  let user = await DetailUsers.findOne({ where: { uuid } });
+  if (!user) {
+    throw new Error("User not found");
+  }
+
+  if (!user.link_cover_pics) {
+    throw new Error("Foto sampul belum tersedia atau sudah dihapus");
+  }
+
+  await removeCoverPicsFileFromS3(user.link_cover_pics);
+  user.link_cover_pics = "";
+  await user.save();
+
+  return {
+    uuid: user.uuid,
+    username: user.username,
+    link_cover_pics: user.link_cover_pics,
+  };
+};
 module.exports = {
   GetAllUsersService,
   GetUserByUUIDService,
   UserUpdateService,
   UploadPicsProfileService,
   DeletePicsProfileService,
+  UploadCoverPicsProfileService,
+  DeleteCoverPicsProfileService,
 };
 
 
