@@ -1,78 +1,22 @@
-const path = require("path");
 const { Op } = require("sequelize");
 const { DetailUsers } = require("../models");
-const {
-  rustfsClient,
-  ensureBucketExists,
-  S3_BUCKET,
-  S3_ENDPOINT,
-  PutObjectCommand,
-  DeleteObjectCommand,
-} = require("../config/storage-s3.config");
+const { uploadProfileBufferToS3, uploadCoverProfileBufferToS3, removePicsFileFromS3, removeCoverPicsFileFromS3 } = require("../pkg/storage/storage-s3.pkg");
 
-const extractObjectKey = (linkPict) => {
-  if (!linkPict || typeof linkPict !== "string") return null;
-  const bucketPrefix = `/${S3_BUCKET}/`;
-  const idx = linkPict.indexOf(bucketPrefix);
-  if (idx !== -1) {
-    return linkPict.substring(idx + bucketPrefix.length);
-  }
-  return linkPict;
-};
-
-const removeFileFromS3 = async (linkPict) => {
-  const oldKey = extractObjectKey(linkPict);
-  if (!oldKey) return;
-  try {
-    await rustfsClient.send(
-      new DeleteObjectCommand({
-        Bucket: S3_BUCKET,
-        Key: oldKey,
-      }),
-    );
-  } catch (err) {
-    console.warn(`[RustFS] Gagal menghapus file lama (${oldKey}): ${err.message}`);
-  }
-};
-
-const uploadBufferToS3 = async (uuid, file) => {
-  if (!file || !file.buffer) {
-    throw new Error("File gambar tidak ditemukan");
-  }
-
-  await ensureBucketExists(S3_BUCKET);
-
-  const ext = path.extname(file.originalname || "").toLowerCase() || ".jpg";
-  const objectKey = `profile-pictures/${uuid}-${Date.now()}${ext}`;
-
-  await rustfsClient.send(
-    new PutObjectCommand({
-      Bucket: S3_BUCKET,
-      Key: objectKey,
-      Body: file.buffer,
-      ContentType: file.mimetype || "image/jpeg",
-    }),
-  );
-
-  const cleanEndpoint = S3_ENDPOINT.replace(/\/$/, "");
-  const fileUrl = `${cleanEndpoint}/${S3_BUCKET}/${objectKey}`;
-  return { objectKey, fileUrl };
-};
 
 const GetAllUsersService = async ({ page = 1, size = 10, search = "" }) => {
-  const limit = parseInt(size);
-  const offset = (page - 1) * limit;
+  let limit = parseInt(size);
+  let offset = (page - 1) * limit;
 
-  const where = search
+  let where = search
     ? {
-        [Op.or]: [
-          { username: { [Op.like]: `%${search}%` } },
-          { email: { [Op.like]: `%${search}%` } },
-        ],
-      }
+      [Op.or]: [
+        { username: { [Op.like]: `%${search}%` } },
+        { email: { [Op.like]: `%${search}%` } },
+      ],
+    }
     : {};
 
-  const { rows, count } = await DetailUsers.findAndCountAll({
+  let { rows, count } = await DetailUsers.findAndCountAll({
     attributes: [
       "uuid",
       "username",
@@ -82,6 +26,7 @@ const GetAllUsersService = async ({ page = 1, size = 10, search = "" }) => {
       "phone",
       "gender",
       "link_pict",
+      "link_cover_pics",
     ],
     where,
     offset,
@@ -89,7 +34,7 @@ const GetAllUsersService = async ({ page = 1, size = 10, search = "" }) => {
     order: [["createdAt", "DESC"]],
   });
 
-  const totalPages = Math.ceil(count / limit);
+  let totalPages = Math.ceil(count / limit);
   return {
     data: rows,
     size: limit,
@@ -111,6 +56,7 @@ const GetUserByUUIDService = async (uuid) => {
       "phone",
       "gender",
       "link_pict",
+      "link_cover_pics",
     ],
   });
   return user;
@@ -123,7 +69,7 @@ const UserUpdateService = async (uuid, payload) => {
   if (!user) {
     throw new Error("User not found");
   }
-  const editableFields = [
+  let editableFields = [
     "username",
     "email",
     "firstName",
@@ -131,9 +77,10 @@ const UserUpdateService = async (uuid, payload) => {
     "phone",
     "gender",
     "link_pict",
+    "link_cover_pics",
   ];
 
-  for (const field of editableFields) {
+  for (let field of editableFields) {
     if (Object.prototype.hasOwnProperty.call(payload, field)) {
       user[field] = payload[field];
     }
@@ -144,16 +91,23 @@ const UserUpdateService = async (uuid, payload) => {
 };
 
 const UploadPicsProfileService = async (uuid, file) => {
+  let MAX_FILE_SIZE = 5 * 1024 * 1024;
+
+  if (file.size > MAX_FILE_SIZE) {
+    throw new Error("Ukuran file tidak boleh lebih dari 5MB");
+  }
+
   let user = await DetailUsers.findOne({ where: { uuid } });
   if (!user) {
     throw new Error("User not found");
   }
 
-  if (user.link_pict) {
-    await removeFileFromS3(user.link_pict);
+  let isReplacing = Boolean(user.link_pict);
+  if (isReplacing) {
+    await removePicsFileFromS3(user.link_pict);
   }
 
-  const { objectKey, fileUrl } = await uploadBufferToS3(uuid, file);
+  let { objectKey, fileUrl } = await uploadProfileBufferToS3(uuid, file);
   user.link_pict = fileUrl;
   await user.save();
 
@@ -162,30 +116,41 @@ const UploadPicsProfileService = async (uuid, file) => {
     username: user.username,
     link_pict: user.link_pict,
     key: objectKey,
+    isReplaced: isReplacing,
   };
 };
 
-const UpdatePicsProfileService = async (uuid, file) => {
+const UploadCoverPicsProfileService = async (uuid, file) => {
+  let MAX_FILE_SIZE = 5 * 1024 * 1024;
+
+  if (file.size > MAX_FILE_SIZE) {
+    throw new Error("Ukuran file tidak boleh lebih dari 5MB");
+  }
+
   let user = await DetailUsers.findOne({ where: { uuid } });
   if (!user) {
     throw new Error("User not found");
   }
+  console.log("[user.service]: user", user)
 
-  if (user.link_pict) {
-    await removeFileFromS3(user.link_pict);
+  let isReplacing = Boolean(user.link_cover_pics)
+  if (isReplacing) {
+    await removeCoverPicsFileFromS3(user.link_cover_pics);
   }
 
-  const { objectKey, fileUrl } = await uploadBufferToS3(uuid, file);
-  user.link_pict = fileUrl;
+  let { objectKey, fileUrl } = await uploadCoverProfileBufferToS3(uuid, file)
+  user.link_cover_pics = fileUrl;
   await user.save();
 
   return {
     uuid: user.uuid,
     username: user.username,
-    link_pict: user.link_pict,
+    link_cover_pics: user.link_cover_pics,
     key: objectKey,
+    isReplaced: isReplacing,
   };
-};
+
+}
 
 const DeletePicsProfileService = async (uuid) => {
   let user = await DetailUsers.findOne({ where: { uuid } });
@@ -197,7 +162,7 @@ const DeletePicsProfileService = async (uuid) => {
     throw new Error("Foto profil belum tersedia atau sudah dihapus");
   }
 
-  await removeFileFromS3(user.link_pict);
+  await removePicsFileFromS3(user.link_pict);
   user.link_pict = "";
   await user.save();
 
@@ -208,12 +173,34 @@ const DeletePicsProfileService = async (uuid) => {
   };
 };
 
+const DeleteCoverPicsProfileService = async (uuid) => {
+  let user = await DetailUsers.findOne({ where: { uuid } });
+  if (!user) {
+    throw new Error("User not found");
+  }
+
+  if (!user.link_cover_pics) {
+    throw new Error("Foto sampul belum tersedia atau sudah dihapus");
+  }
+
+  await removeCoverPicsFileFromS3(user.link_cover_pics);
+  user.link_cover_pics = "";
+  await user.save();
+
+  return {
+    uuid: user.uuid,
+    username: user.username,
+    link_cover_pics: user.link_cover_pics,
+  };
+};
 module.exports = {
   GetAllUsersService,
   GetUserByUUIDService,
   UserUpdateService,
   UploadPicsProfileService,
-  UpdatePicsProfileService,
   DeletePicsProfileService,
+  UploadCoverPicsProfileService,
+  DeleteCoverPicsProfileService,
 };
+
 

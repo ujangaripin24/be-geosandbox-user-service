@@ -5,8 +5,9 @@ const {
   GetUserDetailController,
   UserUpdateController,
   UploadPicsProfileController,
-  UpdatePicsProfileController,
   DeletePicsProfileController,
+  UploadCoverPicsProfileController,
+  DeleteCoverPicsProfileController,
 } = require("../controllers/user.controller");
 const {
   authenticateTokenGuard,
@@ -15,12 +16,11 @@ const {
 const { UpdateUserValidator } = require("../validations/user.validation");
 const { validationResult } = require("express-validator");
 const { version } = require("../../package.json");
+const { maxUploadFile } = require("../pkg/storage/storage-s3.pkg");
+const { formatError } = require("../pkg/error-formatter.pkg");
 
 const router = express.Router();
-const upload = multer({
-  storage: multer.memoryStorage(),
-  limits: { fileSize: 5 * 1024 * 1024 }, // Maksimal 5MB
-});
+
 
 router.get("/users/health", (req, res) => {
   res.status(200).json({
@@ -71,29 +71,60 @@ router.put(
   UserUpdateController,
 );
 
-router.post(
-  "/users/upload-profile",
-  authenticateTokenGuard,
-  upload.any(),
-  UploadPicsProfileController,
-);
 router.put(
   "/users/upload-profile",
   authenticateTokenGuard,
-  upload.any(),
+  (req, res, next) => {
+    maxUploadFile.any()(req, res, (err) => {
+      if (err) {
+        if (err.code === "LIMIT_FILE_SIZE") {
+          return res
+            .status(400)
+            .json(
+              formatError("Ukuran file tidak boleh lebih dari 5MB", "file"),
+            );
+        }
+        return res.status(400).json(formatError(err.message, "file"));
+      }
+      next();
+    });
+  },
   UploadPicsProfileController,
 );
+
 router.put(
-  "/users/update-profile-pic",
+  "/users/upload-cover-pics",
   authenticateTokenGuard,
-  upload.any(),
-  UpdatePicsProfileController,
-);
+  (req, res, next) => {
+    maxUploadFile.any()(req, res, (err) => {
+      if (err) {
+        if (err.code === "LIMIT_FILE_SIZE") {
+          return res
+            .status(400)
+            .json(
+              formatError("Ukuran file tidak boleh lebih dari 5MB", "file"),
+            );
+        }
+        return res.status(400).json(formatError(err.message, "file"));
+      }
+      next();
+    });
+  },
+  UploadCoverPicsProfileController,
+)
+
 router.delete(
-  "/users/delete-profile-pic",
+  "/users/delete/upload-profile",
   authenticateTokenGuard,
   DeletePicsProfileController,
 );
 
+router.delete(
+  "/users/delete/upload-conver-pics",
+  authenticateTokenGuard,
+  DeleteCoverPicsProfileController
+)
+
 module.exports = router;
+
 

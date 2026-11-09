@@ -57,6 +57,10 @@ module.exports = (sequelize, DataTypes) => {
     link_pict: {
       type: DataTypes.STRING,
       allowNull: false
+    },
+    link_cover_pics: {
+      type: DataTypes.STRING,
+      allowNull: true
     }
   }, {
     sequelize,
