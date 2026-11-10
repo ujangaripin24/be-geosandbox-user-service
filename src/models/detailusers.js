@@ -1,7 +1,5 @@
-'use strict';
-const {
-  Model
-} = require('sequelize');
+"use strict";
+const { Model } = require("sequelize");
 module.exports = (sequelize, DataTypes) => {
   class DetailUsers extends Model {
     /**
@@ -10,63 +8,66 @@ module.exports = (sequelize, DataTypes) => {
      * The `models/index` file will call this method automatically.
      */
     static associate(models) {
-            DetailUsers.hasMany(models.TblUserLoginHistory, {
+      DetailUsers.hasMany(models.TblUserLoginHistory, {
         foreignKey: "uuid_user",
         sourceKey: "uuid",
         as: "loginHistories",
       });
       DetailUsers.hasMany(models.TblAddressUsers, {
-        foreignKey: 'uuid_user',
-        sourceKey: 'uuid',
-        as: 'addresses'
+        foreignKey: "uuid_user",
+        sourceKey: "uuid",
+        as: "addresses",
       });
     }
   }
-  DetailUsers.init({
-    uuid: {
-      type: DataTypes.UUID,
-      defaultValue: DataTypes.UUIDV4,
-      primaryKey: true,
-      allowNull: false
+  DetailUsers.init(
+    {
+      uuid: {
+        type: DataTypes.UUID,
+        defaultValue: DataTypes.UUIDV4,
+        primaryKey: true,
+        allowNull: false,
+      },
+      username: {
+        type: DataTypes.STRING,
+        allowNull: false,
+      },
+      email: {
+        type: DataTypes.STRING,
+        allowNull: false,
+        unique: true,
+      },
+      firstName: {
+        type: DataTypes.STRING,
+        allowNull: false,
+      },
+      lastName: {
+        type: DataTypes.STRING,
+        allowNull: false,
+      },
+      phone: {
+        type: DataTypes.STRING,
+        allowNull: false,
+      },
+      gender: {
+        type: DataTypes.STRING,
+        allowNull: false,
+      },
+      link_pict: {
+        type: DataTypes.STRING,
+        allowNull: false,
+      },
+      link_cover_pics: {
+        type: DataTypes.STRING,
+        allowNull: true,
+      },
     },
-    username: {
-      type: DataTypes.STRING,
-      allowNull: false
+    {
+      sequelize,
+      modelName: "DetailUsers",
+      tableName: "tbl_detail_users",
+      timestamps: true,
     },
-    email: {
-      type: DataTypes.STRING,
-      allowNull: false,
-      unique: true
-    },
-    firstName: {
-      type: DataTypes.STRING,
-      allowNull: false
-    },
-    lastName: {
-      type: DataTypes.STRING,
-      allowNull: false
-    },
-    phone: {
-      type: DataTypes.STRING,
-      allowNull: false
-    },
-    gender: {
-      type: DataTypes.STRING,
-      allowNull: false
-    },
-    link_pict: {
-      type: DataTypes.STRING,
-      allowNull: false
-    },
-    link_cover_pics: {
-      type: DataTypes.STRING,
-      allowNull: true
-    }
-  }, {
-    sequelize,
-    modelName: 'DetailUsers',
-    tableName: 'tbl_detail_users',
-    timestamps: true
-  });
+  );
   return DetailUsers;
 };

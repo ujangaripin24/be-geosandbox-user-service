@@ -17,10 +17,6 @@ module.exports = {
         type: Sequelize.STRING,
         allowNull: false,
       },
-      geom: {
-        type: Sequelize.GEOMETRY("POINT", 4326),
-        allowNull: true,
-      },
       link_location_company: {
         type: Sequelize.STRING,
         allowNull: true,
