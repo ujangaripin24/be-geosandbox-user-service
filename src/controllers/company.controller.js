@@ -66,6 +66,13 @@ const UpdateCompanyController = async (req, res, next) => {
     const { uuid } = req.params;
     const body = req.body;
     const data = await UpdateCompanyService(uuid, body);
+
+    await deliverMessageData(["gis_company_updated_queue"], {
+      event_type: "EVENT_UPDATE_COMPANY_USER_SERVICE",
+      uuid: data.uuid,
+      name: data.name,
+    });
+
     return res.status(200).json({
       message: "Company berhasil diperbarui.",
       data,
@@ -83,6 +90,12 @@ const DeleteCompanyController = async (req, res, next) => {
   try {
     const { uuid } = req.params;
     await DeleteCompanyService(uuid);
+
+    await deliverMessageData(["gis_company_deleted_queue"], {
+      event_type: "EVENT_DELETE_COMPANY_USER_SERVICE",
+      uuid: uuid,
+    });
+
     return res.status(200).json({
       message: "Company berhasil dihapus.",
     });
