@@ -1,7 +1,11 @@
 const { Op } = require("sequelize");
 const { DetailUsers } = require("../models");
-const { uploadProfileBufferToS3, uploadCoverProfileBufferToS3, removePicsFileFromS3, removeCoverPicsFileFromS3 } = require("../pkg/storage/storage-s3.pkg");
-
+const {
+  uploadProfileBufferToS3,
+  uploadCoverProfileBufferToS3,
+  removePicsFileFromS3,
+  removeCoverPicsFileFromS3,
+} = require("../pkg/storage/storage-s3.pkg");
 
 const GetAllUsersService = async ({ page = 1, size = 10, search = "" }) => {
   let limit = parseInt(size);
@@ -9,11 +13,11 @@ const GetAllUsersService = async ({ page = 1, size = 10, search = "" }) => {
 
   let where = search
     ? {
-      [Op.or]: [
-        { username: { [Op.like]: `%${search}%` } },
-        { email: { [Op.like]: `%${search}%` } },
-      ],
-    }
+        [Op.or]: [
+          { username: { [Op.like]: `%${search}%` } },
+          { email: { [Op.like]: `%${search}%` } },
+        ],
+      }
     : {};
 
   let { rows, count } = await DetailUsers.findAndCountAll({
@@ -78,6 +82,8 @@ const UserUpdateService = async (uuid, payload) => {
     "gender",
     "link_pict",
     "link_cover_pics",
+    "event_type",
+    "role",
   ];
 
   for (let field of editableFields) {
@@ -131,14 +137,14 @@ const UploadCoverPicsProfileService = async (uuid, file) => {
   if (!user) {
     throw new Error("User not found");
   }
-  console.log("[user.service]: user", user)
+  console.log("[user.service]: user", user);
 
-  let isReplacing = Boolean(user.link_cover_pics)
+  let isReplacing = Boolean(user.link_cover_pics);
   if (isReplacing) {
     await removeCoverPicsFileFromS3(user.link_cover_pics);
   }
 
-  let { objectKey, fileUrl } = await uploadCoverProfileBufferToS3(uuid, file)
+  let { objectKey, fileUrl } = await uploadCoverProfileBufferToS3(uuid, file);
   user.link_cover_pics = fileUrl;
   await user.save();
 
@@ -149,8 +155,7 @@ const UploadCoverPicsProfileService = async (uuid, file) => {
     key: objectKey,
     isReplaced: isReplacing,
   };
-
-}
+};
 
 const DeletePicsProfileService = async (uuid) => {
   let user = await DetailUsers.findOne({ where: { uuid } });
@@ -202,5 +207,3 @@ module.exports = {
   UploadCoverPicsProfileService,
   DeleteCoverPicsProfileService,
 };
-
-

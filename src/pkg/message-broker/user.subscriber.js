@@ -18,7 +18,7 @@ const consumeUserActivatedQueue = async () => {
     const payload = JSON.parse(msg.content.toString());
     console.log("[user-service] Received 'user_activated' payload:", payload);
 
-    const { uuid, username, email } = payload;
+    const { uuid, username, email, event_type, role } = payload;
     if (!uuid) {
       console.warn("[user-service] Missing uuid in message payload");
       return;
@@ -29,6 +29,8 @@ const consumeUserActivatedQueue = async () => {
       await DetailUsers.create({
         uuid,
         username,
+        event_type: event_type || "EVENT_ACTIVATION_USER",
+        role: role || "GUEST",
         email,
         firstName: "",
         lastName: "",

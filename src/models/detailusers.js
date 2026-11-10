@@ -18,6 +18,13 @@ module.exports = (sequelize, DataTypes) => {
         sourceKey: "uuid",
         as: "addresses",
       });
+      if (models.TblCompany) {
+        DetailUsers.belongsTo(models.TblCompany, {
+          foreignKey: "uuid_company",
+          targetKey: "uuid",
+          as: "company",
+        });
+      }
     }
   }
   DetailUsers.init(
@@ -58,6 +65,19 @@ module.exports = (sequelize, DataTypes) => {
         allowNull: false,
       },
       link_cover_pics: {
+        type: DataTypes.STRING,
+        allowNull: true,
+      },
+      role: {
+        type: DataTypes.ENUM("SUPERADMIN", "ADMIN", "USER", "GUEST"),
+        defaultValue: "GUEST",
+        allowNull: false,
+      },
+      uuid_company: {
+        type: DataTypes.UUID,
+        allowNull: true,
+      },
+      event_type: {
         type: DataTypes.STRING,
         allowNull: true,
       },

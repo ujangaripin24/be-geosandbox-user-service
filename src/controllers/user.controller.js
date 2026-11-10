@@ -20,8 +20,6 @@ const ALLOWED_IMAGE_MIME_TYPES = [
   "image/webp",
 ];
 
-
-
 const GetAllUsersController = async (req, res, next) => {
   const { page, size, search } = req.query;
 
@@ -58,6 +56,8 @@ const UserUpdateController = async (req, res, next) => {
       uuid: updatedUser.uuid,
       username: updatedUser.username,
       email: updatedUser.email,
+      role: updatedUser.role,
+      event_type: "EVENT_UPDATE_USER_SERVICE",
     });
     return res.status(200).json({ message: "User updated successfully" });
   } catch (error) {
@@ -106,8 +106,8 @@ const UploadCoverPicsProfileController = async (req, res, next) => {
     const uuid = req.user.uuid;
     const file = getUploadedFile(req);
 
-    console.log("[user.controller] uuid: ", uuid)
-    console.log("[user.controller] file: ", file)
+    console.log("[user.controller] uuid: ", uuid);
+    console.log("[user.controller] file: ", file);
 
     if (!file) {
       return res
@@ -166,7 +166,9 @@ const DeleteCoverPicsProfileController = async (req, res, next) => {
     });
   } catch (error) {
     if (error.message.includes("belum tersedia")) {
-      return res.status(404).json(formatError(error.message, "link_cover_pics"));
+      return res
+        .status(404)
+        .json(formatError(error.message, "link_cover_pics"));
     }
     return res.status(500).json(formatError(error.message, "server"));
   }
@@ -179,6 +181,5 @@ module.exports = {
   UploadPicsProfileController,
   UploadCoverPicsProfileController,
   DeletePicsProfileController,
-  DeleteCoverPicsProfileController
+  DeleteCoverPicsProfileController,
 };
-
