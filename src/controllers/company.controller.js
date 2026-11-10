@@ -15,7 +15,7 @@ const CreateCompanyController = async (req, res, next) => {
     const body = req.body;
     const data = await CreateCompanyService(body);
 
-    await deliverMessageData(["gis_company_updated_queue"], {
+    await deliverMessageData(["gis_company_created_queue"], {
       event_type: "EVENT_CREATE_COMPANY_USER_SERVICE",
       uuid: data.uuid,
       name: data.name,
