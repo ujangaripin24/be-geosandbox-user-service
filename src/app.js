@@ -10,6 +10,7 @@ const database = require("./config/database.config");
 const userRouter = require("./routes/user.route");
 const addressRouter = require("./routes/address.route");
 const loginHistory = require("./routes/login-history.route");
+const companyRouter = require("./routes/company.route");
 const messageBroker = require("./config/message-broker.config");
 const rustfsClient = require("./config/storage-s3.config");
 const {
@@ -38,6 +39,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use("/api/v1", addressRouter);
 app.use("/api/v1", userRouter);
 app.use("/api/v1", loginHistory);
+app.use("/api/v1", companyRouter);
 
 app.use((req, res, next) => {
   res.status(404).json(createError(404, "Not Found Page you looking for"));
