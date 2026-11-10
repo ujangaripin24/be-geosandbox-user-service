@@ -24,23 +24,27 @@ const handleValidation = (req, res, next) => {
 };
 
 router.post(
-  "/company/create",
+  "/users/company/create",
   authenticateTokenGuard,
   CreateCompanyValidator,
   handleValidation,
   CreateCompanyController,
 );
 
-router.get("/company/get-all", authenticateTokenGuard, GetAllCompaniesController);
+router.get(
+  "/users/company/get-all",
+  authenticateTokenGuard,
+  GetAllCompaniesController,
+);
 
 router.get(
-  "/company/detail/:uuid",
+  "/users/company/detail/:uuid",
   authenticateTokenGuard,
   GetDetailCompanyController,
 );
 
 router.put(
-  "/company/update/:uuid",
+  "/users/company/update/:uuid",
   authenticateTokenGuard,
   UpdateCompanyValidator,
   handleValidation,
@@ -48,10 +52,9 @@ router.put(
 );
 
 router.delete(
-  "/company/delete/:uuid",
+  "/users/company/delete/:uuid",
   authenticateTokenGuard,
   DeleteCompanyController,
 );
 
 module.exports = router;
-

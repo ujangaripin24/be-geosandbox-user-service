@@ -1,5 +1,8 @@
 const { formatError } = require("../pkg/error-formatter.pkg");
 const {
+  deliverMessageData,
+} = require("../pkg/message-broker/message-broker.pkg");
+const {
   CreateCompanyService,
   GetAllCompaniesService,
   GetCompanyByUUIDService,
@@ -11,9 +14,15 @@ const CreateCompanyController = async (req, res, next) => {
   try {
     const body = req.body;
     const data = await CreateCompanyService(body);
+
+    await deliverMessageData(["gis_company_updated_queue"], {
+      event_type: "EVENT_CREATE_COMPANY_USER_SERVICE",
+      uuid: data.uuid,
+      name: data.name,
+    });
+
     return res.status(201).json({
       message: "Company berhasil ditambahkan.",
-      data,
     });
   } catch (error) {
     console.error("Error in CreateCompanyController:", error);
@@ -93,4 +102,3 @@ module.exports = {
   UpdateCompanyController,
   DeleteCompanyController,
 };
-
