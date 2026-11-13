@@ -42,9 +42,18 @@ const consumeUserActivatedQueue = async () => {
         `[user-service] Successfully created DetailUsers record for uuid: ${uuid}`,
       );
     } else {
-      console.log(
-        `[user-service] DetailUsers record for uuid ${uuid} already exists.`,
-      );
+      const updateData = {};
+      if (username) updateData.username = username;
+      if (email) updateData.email = email;
+      if (role) updateData.role = role;
+      if (event_type) updateData.event_type = event_type;
+      if (Object.keys(updateData).length > 0) {
+        await existingDetail.update(updateData);
+        console.log(
+          `[user-service] DetailUsers record for uuid ${uuid} already exists, synchronized fields:`,
+          updateData,
+        );
+      }
     }
   });
 };
@@ -53,75 +62,88 @@ const consumeUserLoginHistoryQueue = async () => {
   await reciverMessageData("user_login_history", async (msg) => {
     if (!msg) return;
 
-    try {
-      const payload = JSON.parse(msg.content.toString());
-      console.log(
-        "[user-service] Received 'user_login_history' payload:",
-        payload,
-      );
+    const payload = JSON.parse(msg.content.toString());
+    console.log(
+      "[user-service] Received 'user_login_history' payload:",
+      payload,
+    );
 
-      let browser = payload.browser || "Unknown Browser";
-      let os = payload.os || "Unknown OS";
-      let device = payload.device || "Desktop";
+    let browser = payload.browser || "Unknown Browser";
+    let os = payload.os || "Unknown OS";
+    let device = payload.device || "Desktop";
 
-      if (payload.user_agent) {
-        try {
-          const parser = new UAParser(payload.user_agent);
-          const ua = parser.getResult();
-          if (ua.browser && ua.browser.name) {
-            browser = `${ua.browser.name} ${ua.browser.version || ''}`.trim();
-          }
-          if (ua.os && ua.os.name) {
-            os = `${ua.os.name} ${ua.os.version || ''}`.trim();
-          }
-          if (ua.device && ua.device.type) {
-            device = ua.device.type.charAt(0).toUpperCase() + ua.device.type.slice(1);
-          }
-        } catch (uaErr) {
-          console.warn("[user-service] Failed parsing user agent:", uaErr.message);
+    if (payload.user_agent) {
+      try {
+        const parser = new UAParser(payload.user_agent);
+        const ua = parser.getResult();
+        if (ua.browser && ua.browser.name) {
+          browser = `${ua.browser.name} ${ua.browser.version || ""}`.trim();
         }
-      }
-
-      let validUuidUser = null;
-      if (payload.uuid_user) {
-        const userExists = await DetailUsers.findOne({
-          where: { uuid: payload.uuid_user },
-          attributes: ["uuid"],
-        });
-        if (userExists) {
-          validUuidUser = payload.uuid_user;
+        if (ua.os && ua.os.name) {
+          os = `${ua.os.name} ${ua.os.version || ""}`.trim();
         }
+        if (ua.device && ua.device.type) {
+          device =
+            ua.device.type.charAt(0).toUpperCase() + ua.device.type.slice(1);
+        }
+      } catch (uaErr) {
+        console.warn("[user-service] Failed parsing user agent:", uaErr.message);
       }
+    }
 
-      await TblUserLoginHistory.create({
-        uuid_user: validUuidUser,
-        email: payload.email || null,
-        ip_address: payload.ip_address || "Unknown",
-        device: device,
-        browser: browser,
-        os: os,
-        city: payload.city || null,
-        region: payload.region || null,
-        country: payload.country || null,
-        timezone: payload.timezone || null,
-        lat: payload.lat !== undefined ? payload.lat : null,
-        lng: payload.lng !== undefined ? payload.lng : null,
-        address: payload.address || null,
-        user_agent: payload.user_agent || null,
-        status: payload.status || "SUCCESS",
-        failure_reason: payload.failure_reason || null,
-        login_at: payload.login_at || new Date(),
+    let validUuidUser = null;
+    if (payload.uuid_user) {
+      let userExists = await DetailUsers.findOne({
+        where: { uuid: payload.uuid_user },
+        attributes: ["uuid"],
       });
 
-      console.log(
-        `[user-service] Successfully created login history record for user: ${payload.email || payload.uuid_user}`,
-      );
-    } catch (err) {
-      console.error(
-        "[user-service] Error saving login history record:",
-        err.message,
-      );
+      if (!userExists && payload.email) {
+        console.warn(
+          `[user-service] DetailUsers record for uuid ${payload.uuid_user} not found on login history. Auto-creating record.`,
+        );
+        userExists = await DetailUsers.create({
+          uuid: payload.uuid_user,
+          username: payload.username || payload.email.split("@")[0],
+          email: payload.email,
+          role: payload.role || "GUEST",
+          event_type: payload.event_type || "EVENT_ACTIVATION_USER",
+          firstName: "",
+          lastName: "",
+          phone: "",
+          gender: "tidak ada",
+          link_pict: "",
+        });
+      }
+
+      if (userExists) {
+        validUuidUser = payload.uuid_user;
+      }
     }
+
+    await TblUserLoginHistory.create({
+      uuid_user: validUuidUser,
+      email: payload.email || null,
+      ip_address: payload.ip_address || "Unknown",
+      device: device,
+      browser: browser,
+      os: os,
+      city: payload.city || null,
+      region: payload.region || null,
+      country: payload.country || null,
+      timezone: payload.timezone || null,
+      lat: payload.lat !== undefined ? payload.lat : null,
+      lng: payload.lng !== undefined ? payload.lng : null,
+      address: payload.address || null,
+      user_agent: payload.user_agent || null,
+      status: payload.status || "SUCCESS",
+      failure_reason: payload.failure_reason || null,
+      login_at: payload.login_at || new Date(),
+    });
+
+    console.log(
+      `[user-service] Successfully created login history record for user: ${payload.email || payload.uuid_user}`,
+    );
   });
 };
 
