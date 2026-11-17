@@ -3,24 +3,19 @@
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
   async up(queryInterface, Sequelize) {
-    /**
-     * Add altering commands here.
-     *
-     * Example:
-     * await queryInterface.createTable('users', { id: Sequelize.INTEGER });
-     */
-    await queryInterface.addColumn("tbl_detail_users", "event_type", {
-      type: Sequelize.STRING(100),
-      allowNull: true,
-    });
+    const table = await queryInterface.describeTable("tbl_detail_users");
+    if (!table.event_type) {
+      await queryInterface.addColumn("tbl_detail_users", "event_type", {
+        type: Sequelize.STRING(100),
+        allowNull: true,
+      });
+    }
   },
 
   async down(queryInterface, Sequelize) {
-    /**
-     * Add reverting commands here.
-     *
-     * Example:
-     * await queryInterface.dropTable('users');
-     */
+    const table = await queryInterface.describeTable("tbl_detail_users");
+    if (table.event_type) {
+      await queryInterface.removeColumn("tbl_detail_users", "event_type");
+    }
   },
 };

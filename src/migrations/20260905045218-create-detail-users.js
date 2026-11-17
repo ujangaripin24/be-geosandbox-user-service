@@ -52,5 +52,8 @@ module.exports = {
   },
   async down(queryInterface, Sequelize) {
     await queryInterface.dropTable('tbl_detail_users');
+    await queryInterface.sequelize.query(
+      'DROP TYPE IF EXISTS "enum_tbl_detail_users_gender";'
+    );
   }
 };
