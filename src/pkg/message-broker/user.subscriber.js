@@ -6,7 +6,7 @@ const {
   getChannel,
   onChannelReady,
 } = require("../../config/message-broker.config");
-const { DetailUsers, TblUserLoginHistory } = require("../../models");
+const { DetailUsers, TblUserLoginHistory, Sequelize } = require("../../models");
 const { UAParser } = require("ua-parser-js");
 
 let consumerRegistered = false;
@@ -26,6 +26,16 @@ const consumeUserActivatedQueue = async () => {
 
     const existingDetail = await DetailUsers.findOne({ where: { uuid } });
     if (!existingDetail) {
+      const duplicateUser = await DetailUsers.findOne({
+        where: Sequelize.or({ username }, { email }),
+      });
+      if (duplicateUser) {
+        console.warn(
+          `[user-service] Skipping 'user_activated' for uuid ${uuid}: username '${username}' or email '${email}' is already used by uuid ${duplicateUser.uuid}`,
+        );
+        return;
+      }
+
       await DetailUsers.create({
         uuid,
         username,
