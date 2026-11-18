@@ -1,5 +1,5 @@
-const { Op } = require("sequelize");
-const { DetailUsers } = require("../models");
+const { Op, where } = require("sequelize");
+const { DetailUsers, TblAddressUsers, TblCompany } = require("../models");
 const {
   uploadProfileBufferToS3,
   uploadCoverProfileBufferToS3,
@@ -13,11 +13,11 @@ const GetAllUsersService = async ({ page = 1, size = 10, search = "" }) => {
 
   let where = search
     ? {
-        [Op.or]: [
-          { username: { [Op.like]: `%${search}%` } },
-          { email: { [Op.like]: `%${search}%` } },
-        ],
-      }
+      [Op.or]: [
+        { username: { [Op.like]: `%${search}%` } },
+        { email: { [Op.like]: `%${search}%` } },
+      ],
+    }
     : {};
 
   let { rows, count } = await DetailUsers.findAndCountAll({
@@ -84,6 +84,7 @@ const UserUpdateService = async (uuid, payload) => {
     "link_cover_pics",
     "event_type",
     "role",
+    "uuid_company"
   ];
 
   for (let field of editableFields) {
@@ -198,6 +199,40 @@ const DeleteCoverPicsProfileService = async (uuid) => {
     link_cover_pics: user.link_cover_pics,
   };
 };
+
+const GetProfileUserDetailService = async (uuid) => {
+  let user = await DetailUsers.findOne({
+    where: { uuid: uuid },
+    include: [{
+      model: TblAddressUsers,
+      as: 'addresses',
+      attributes: ['uuid', 'negara', 'address', 'kota', 'provinsi', 'kode_pos']
+    }, {
+      model: TblCompany,
+      as: 'company',
+      attributes: ['uuid', 'name', 'address']
+    }]
+  });
+
+  if (!user) {
+    throw new Error("User not found");
+  }
+
+  return {
+    username: user.username,
+    email: user.email,
+    firstName: user.firstName,
+    lastName: user.lastName,
+    phone: user.phone,
+    gender: user.gender,
+    link_pict: user.link_pict,
+    link_cover_pics: user.link_cover_pics,
+    detail: user.addresses,
+    company: user.company
+  };
+
+}
+
 module.exports = {
   GetAllUsersService,
   GetUserByUUIDService,
@@ -206,4 +241,5 @@ module.exports = {
   DeletePicsProfileService,
   UploadCoverPicsProfileService,
   DeleteCoverPicsProfileService,
+  GetProfileUserDetailService,
 };

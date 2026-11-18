@@ -51,6 +51,7 @@ const UserUpdateController = async (req, res, next) => {
     let uuid = req.user.uuid;
     console.log("User Update Controller: ", uuid);
     let body = req.body;
+    console.log("[user.contoller] uuid body put: ", body)
     let updatedUser = await UserUpdateService(uuid, body);
     await deliverMessageData(["user_update", "gis_user_update"], {
       uuid: updatedUser.uuid,

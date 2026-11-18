@@ -18,9 +18,9 @@ const { validationResult } = require("express-validator");
 const { version } = require("../../package.json");
 const { maxUploadFile } = require("../pkg/storage/storage-s3.pkg");
 const { formatError } = require("../pkg/error-formatter.pkg");
+const { GetProfileUserDetailController } = require("../controllers/company.controller");
 
 const router = express.Router();
-
 
 router.get("/users/health", (req, res) => {
   res.status(200).json({
@@ -30,32 +30,37 @@ router.get("/users/health", (req, res) => {
     date: new Date().toISOString().replace("T", " ").substring(0, 19),
   });
 });
+
 router.get(
   "/user/profile/admin",
   authenticateTokenGuard,
-  authenticateTokenRole(["admin"]),
+  authenticateTokenRole(["ADMIN"]),
   (req, res, next) => {
     return res.status(200).json({
       message: "Admin role access",
     });
   },
 );
+
 router.get(
   "/user/profile/user",
   authenticateTokenGuard,
-  authenticateTokenRole(["user"]),
+  authenticateTokenRole(["GUEST"]),
   (req, res, next) => {
     return res.status(200).json({
       message: "User role access",
     });
   },
 );
+
 router.get("/users/get-all", GetAllUsersController);
+
 router.get(
   "/users/detail/:uuid",
   authenticateTokenGuard,
   GetUserDetailController,
 );
+
 router.put(
   "/users/update",
   authenticateTokenGuard,
@@ -124,6 +129,8 @@ router.delete(
   authenticateTokenGuard,
   DeleteCoverPicsProfileController
 )
+
+router.get("/user/profile/detail", authenticateTokenGuard, GetProfileUserDetailController)
 
 module.exports = router;
 

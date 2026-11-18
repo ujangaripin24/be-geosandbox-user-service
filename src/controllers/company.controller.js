@@ -9,6 +9,7 @@ const {
   UpdateCompanyService,
   DeleteCompanyService,
 } = require("../services/company.service");
+const { GetProfileUserDetailService } = require("../services/user.service");
 
 const CreateCompanyController = async (req, res, next) => {
   try {
@@ -117,10 +118,26 @@ const DeleteCompanyController = async (req, res, next) => {
   }
 };
 
+const GetProfileUserDetailController = async (req, res, next) => {
+  try {
+    let uuid = req.user.uuid;
+    console.log("[company.controller] uuid user: ", uuid)
+    let data = await GetProfileUserDetailService(uuid)
+    return res.status(200).json({
+      message: "Data berhasil diambil",
+      data
+    })
+  } catch (error) {
+    console.error("Error in GetProfileUserDetailController:", error);
+    return res.status(500).json(formatError(error.message, "server"));
+  }
+}
+
 module.exports = {
   CreateCompanyController,
   GetAllCompaniesController,
   GetDetailCompanyController,
   UpdateCompanyController,
   DeleteCompanyController,
+  GetProfileUserDetailController,
 };
